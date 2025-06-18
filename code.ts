@@ -1,8 +1,25 @@
 figma.showUI(__html__, { width: 400, height: 500 });
 
 // This function maps a value from one range to another.
-function map(value: number, currentLow: number, currentHigh: number, targetLow: number, targetHigh: number) {
-    return targetLow + (targetHigh - targetLow) * (value - currentLow) / (currentHigh - currentLow);
+function map(value: number, currentLow: number, currentHigh: number, targetLow: number, targetHigh: number) : number{
+    currentLow = parseFloat(currentLow.toString());
+    currentHigh = parseFloat(currentHigh.toString());
+    targetLow = parseFloat(targetLow.toString());
+    targetHigh = parseFloat(targetHigh.toString());
+
+    if (currentLow === currentHigh) {
+        console.warn("Current range is zero, returning targetLow to avoid division by zero.");
+        return targetLow; // Avoid division by zero
+    }
+    if (targetLow === targetHigh) {
+        console.warn("Target range is zero, returning targetLow to avoid division by zero.");
+        return targetLow; // Avoid division by zero
+    }
+    if (value < currentLow || value > currentHigh) {
+        console.warn(`Value ${value} is out of bounds (${currentLow}, ${currentHigh}). Clamping to range.`);
+        value = Math.max(currentLow, Math.min(value, currentHigh)); // Clamp value to the current range
+    }
+  return targetLow + ((targetHigh - targetLow) * (value - currentLow)) / (currentHigh - currentLow);
 }
 
 figma.ui.onmessage = (msg) => {
@@ -16,6 +33,7 @@ figma.ui.onmessage = (msg) => {
     let mappedValues: number[] = [];
 
     console.log("Input Range:", inputMin, inputMax);
+    console.log("Target Range:", min, max);
 
     if (values.length === 0) { // If no values are provided, generate random values
       for (let i = 0; i < selection.length; i++) {

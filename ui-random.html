@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h3>Choose Action</h3>
+    <button id="randomizeBtn">Randomize Width</button>
+    <div id="inputs" style="margin-top:10px; display:none;">
+      <input id="min" placeholder="Min width" type="number" value="0"/>
+      <input id="max" placeholder="Max width" type="number" value="100"/>
+      <button id="submit">Apply</button>
+    </div>
+
+    <script>
+      const randomizeBtn = document.getElementById('randomizeBtn');
+      const inputsDiv = document.getElementById('inputs');
+
+      randomizeBtn.onclick = () => {
+        inputsDiv.style.display = 'block';
+      };
+
+      document.getElementById('submit').onclick = () => {
+        const min = document.getElementById('min').value;
+        const max = document.getElementById('max').value;
+
+        parent.postMessage({ pluginMessage: { type: 'randomize-width', min, max } }, '*');
+      };
+    </script>
+  </body>
+</html>

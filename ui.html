@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      h3, h5 {
+        margin: 0 0 5px 0;
+      }
+      p {
+        margin: 10px 0;
+      }
+      p.small {
+        margin: 5px 0;
+        font-size: 0.8rem;
+        color: #666
+      }
+
+      textarea {
+        width: 100%;
+        max-width: 100%;
+        min-width: 100%;
+        height: 100px;
+        margin-bottom: 10px;
+      }
+      .range-inputs {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        gap: 10px;
+      }
+      input[type="number"] {
+        width: 100%;
+      }
+      button {
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Generate Bars</h3>
+    <p>Enter one numeric value per line (or comma-separated):</p>
+    <p class="small">If no values are provided, random values will be generated.</p>
+    <textarea id="csv-input" placeholder="e.g. 100, 200, 150"></textarea>
+    <div id="input-range" style="display: none;">
+      <h5>Input Range</h5>
+      <div class="range-inputs">
+        <label for="inputMin">Min:</label>
+        <input id="inputMin" placeholder="auto" type="number" value="0"/>
+        <label for="inputMax">Max:</label>
+        <input id="inputMax" placeholder="auto" type="number" />
+      </div>
+    </div>
+    <div id="target-range" >
+      <h5>Target Range</h5>
+      <div class="range-inputs">
+        <label for="min">Min:</label>
+        <input id="min" placeholder="Min width" type="number" value="0" />
+        <label for="max">Max:</label>
+        <input id="max" placeholder="Max width" type="number" value="100" />
+      </div>
+    </div>
+    <button id="apply-button">Scale Selection randomly</button>
+
+    <script>
+      const csvInput = document.getElementById('csv-input');
+      const applyButton = document.getElementById('apply-button');
+      
+      csvInput.addEventListener('input',() => {
+        if (csvInput.value.trim().length > 0) {
+          document.getElementById('input-range').style.display = 'block';
+          applyButton.innerHTML = 'Scale Selection to CSV Values';
+        } else {
+          document.getElementById('input-range').style.display = 'none';
+          applyButton.innerHTML = 'Scale Selection randomly';
+        }
+      });
+
+      applyButton.onclick = () => {
+        const range = {
+          inputMin: document.getElementById('inputMin').value,
+          inputMax: document.getElementById('inputMax').value,
+          min: document.getElementById('min').value,
+          max: document.getElementById('max').value,
+        }
+        const raw = document.getElementById('csv-input').value.trim();
+        let entries = [];
+
+        if (raw.length === 0) {
+          entries = []
+        } else {
+          entries = raw
+            .split(/[\n\r,]+/)
+            .map(str => {
+              const num = parseFloat(str.trim())
+              return isNaN(num) ? null : num //set to null if not a number
+            })
+        }
+
+        parent.postMessage({ pluginMessage: { type: 'apply-csv-scaling', values: entries, range } }, '*');
+      };
+
+    </script>
+  </body>
+</html>

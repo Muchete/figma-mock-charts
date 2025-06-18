@@ -30,11 +30,22 @@
       margin-bottom: 10px;
     }
 
-    .range-inputs {
+    select,
+    .inputs {
+      margin-bottom: 10px;
       display: flex;
+    }
+
+    .col-2 {
       justify-content: space-between;
       margin-bottom: 10px;
       gap: 10px;
+    }
+
+    .input-checkbox {
+      display: flex;
+      align-items: left;
+      width: 50%;
     }
 
     input[type="number"] {
@@ -49,18 +60,19 @@
 
 <body>
   <select id="action">
-    <option value="randomize-width">Random Width</option>
-    <option value="randomize-height">Random Height</option>
-    <option value="randomize-color">Random Color</option>
+    <option value="set-width-height">Set width and/or height</option>
+    <option value="set-x-y">Set x and/or y position</option>
+    <!-- <option value="set-color">Set color</option> -->
   </select>
 
-  <h3>Generate Bars</h3>
+  <h3 class="action-set-width-height">Set width and/or height</h3>
+  <h3 class="action-set-x-y" style="display: none;">Set x and/or y position</h3>
   <p>Enter one numeric value per line (or comma-separated):</p>
   <p class="small">If no values are provided, random values will be generated.</p>
   <textarea id="csv-input" placeholder="e.g. 100, 200, 150"></textarea>
   <div id="input-range" style="display: none;">
     <h5>Input Range</h5>
-    <div class="range-inputs">
+    <div class="inputs col-2">
       <label for="inputMin">Min:</label>
       <input id="inputMin" placeholder="auto" type="number" value="0" />
       <label for="inputMax">Max:</label>
@@ -69,28 +81,91 @@
   </div>
   <div id="target-range">
     <h5>Target Range</h5>
-    <div class="range-inputs">
+    <div class="inputs col-2">
       <label for="min">Min:</label>
       <input id="min" placeholder="Min width" type="number" value="0" />
       <label for="max">Max:</label>
       <input id="max" placeholder="Max width" type="number" value="100" />
     </div>
   </div>
+  <div id="applyto">
+    <h5>Apply to</h5>
+    <div class="inputs col-2 action-set-width-height">
+      <div class="input-checkbox">
+        <input type="checkbox" id="width" name="width" value="Bike" checked>
+        <label for="width">Width</label>
+      </div>
+      <div class="input-checkbox">
+        <input type="checkbox" id="height" name="height" value="Car">
+        <label for="height">Height</label>
+      </div>
+    </div>
+    <div class="inputs col-2 action-set-x-y" style="display: none;">
+      <div class="input-checkbox">
+        <input type="checkbox" id="x" name="x" value="Bike" checked>
+        <label for="x">X-Axis</label>
+      </div>
+      <div class="input-checkbox">
+        <input type="checkbox" id="y" name="y" value="Car">
+        <label for="y">Y-Axis</label>
+      </div>
+    </div>
+  </div>
   <button id="apply-button">Scale Selection randomly</button>
 
   <script>
+    const actionSelect = document.getElementById('action')
+    let action = actionSelect.value
     const csvInput = document.getElementById('csv-input')
     const applyButton = document.getElementById('apply-button')
 
-    csvInput.addEventListener('input', () => {
-      if (csvInput.value.trim().length > 0) {
+    const modeChange = () => {
+      action = actionSelect.value
+      if (action === 'set-width-height') {
+        document.querySelectorAll('.action-set-width-height').forEach(element => {
+          element.style.display = "flex"
+        })
+        document.querySelectorAll('.action-set-x-y').forEach(element => {
+          element.style.display = "none"
+        })
+      } else if (action === 'set-x-y') {
+        document.querySelectorAll('.action-set-width-height').forEach(element => {
+          element.style.display = "none"
+        })
+        document.querySelectorAll('.action-set-x-y').forEach(element => {
+          element.style.display = "flex"
+        })
+      }
+
+      if (csvInput.value.trim().length > 0) { // If there is input in the CSV textarea
         document.getElementById('input-range').style.display = 'block'
-        applyButton.innerHTML = 'Scale Selection to CSV Values'
-      } else {
+
+        switch (action) {
+          case 'set-width-height':
+            applyButton.innerHTML = 'Scale Selection to CSV Values'
+            break
+          case 'set-x-y':
+            applyButton.innerHTML = 'Position Selection to CSV Values'
+            break
+        }
+
+      } else { // If the CSV textarea is empty
         document.getElementById('input-range').style.display = 'none'
         applyButton.innerHTML = 'Scale Selection randomly'
+
+        switch (action) {
+          case 'set-width-height':
+            applyButton.innerHTML = 'Scale Selection randomly'
+            break
+          case 'set-x-y':
+            applyButton.innerHTML = 'Position Selection randomly'
+            break
+        }
       }
-    })
+    }
+
+    actionSelect.addEventListener('change', modeChange)
+    csvInput.addEventListener('input', modeChange)
 
     applyButton.onclick = () => {
       const range = {
@@ -99,22 +174,31 @@
         min: document.getElementById('min').value,
         max: document.getElementById('max').value,
       }
+      const applyTo = {
+        width: document.getElementById('width').checked,
+        height: document.getElementById('height').checked,
+        x: document.getElementById('x').checked,
+        y: document.getElementById('y').checked,
+      }
+
       const raw = document.getElementById('csv-input').value
       let entries = []
-
       if (raw.length === 0) {
         entries = []
       } else {
         entries = raw
-          .split(/\r?\n/) // Split on each line
-          .map(str => {
-            const trimmed = str.trim()
-            const num = parseFloat(trimmed)
-            return trimmed === "" || isNaN(num) ? null : num
+          .split(/\r?\n/) // Split into lines first (preserve empty lines)
+          .flatMap(line => {
+            if (line.trim() === "") return [null] // Represent empty line
+            return line.split(",").map(part => {
+              const trimmed = part.trim()
+              const num = parseFloat(trimmed)
+              return trimmed === "" || isNaN(num) ? null : num
+            })
           })
       }
 
-      parent.postMessage({ pluginMessage: { type: 'apply-csv-scaling', values: entries, range } }, '*')
+      parent.postMessage({ pluginMessage: { type: action /* ie. set-x-y */, values: entries, range, applyTo } }, '*')
     };
 
   </script>

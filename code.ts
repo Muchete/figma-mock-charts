@@ -84,7 +84,6 @@ figma.ui.onmessage = (msg) => {
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
         let value = mappedValues[i % mappedValues.length]
-        // value = value === 0 ? 0.01 : value //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
         const x = applyToX ? value : node.x
         const y = applyToY ? value : node.y
 

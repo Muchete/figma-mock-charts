@@ -100,9 +100,6 @@ figma.ui.onmessage = (msg) => {
   const applyToFill = msg.applyTo.fill
   const applyToStroke = msg.applyTo.stroke
   let mappedValues: number[] = []
-  let mappedColorRange: any = []
-
-  console.log(msg.applyTo)
 
   if (msg.type === "set-color") {// Set min and max based on the color range
     if (colorRange.length === 0) {
@@ -114,6 +111,8 @@ figma.ui.onmessage = (msg) => {
   }
 
   if (debugMode) {
+    console.log("Debug Mode: ON")
+    console.log("Mode:", msg.type)
     console.log("Input Range:", inputMin, inputMax)
     console.log("Target Range:", min, max)
     console.log("Target ColorRange:", colorRange)

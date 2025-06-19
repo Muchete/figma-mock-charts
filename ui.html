@@ -64,11 +64,14 @@
     <option value="set-scale">Scale</option>
     <option value="set-x-y">Set x and/or y position</option>
     <option value="set-color">Set color</option>
+    <option value="wip" disabled>----WIP----</option>
+    <option value="set-x-y-vector">Set x and/or y of Vector</option>
   </select>
 
   <h3 class="action-ui action-set-w-h">Set width and/or height</h3>
   <h3 class="action-ui action-set-scale" style="display: none;">Scale</h3>
   <h3 class="action-ui action-set-x-y" style="display: none;">Set x and/or y position</h3>
+  <h3 class="action-ui action-set-x-y-vector" style="display: none;">Set x and/or y of Vector</h3>
   <h3 class="action-ui action-set-color" style="display: none;">Set fill or stroke color</h3>
   <p>Enter one numeric value per line (or comma-separated):</p>
   <p class="small">If no values are provided, random values will be generated.</p>
@@ -84,7 +87,7 @@
   </div>
   <div id="target-range">
     <h5>Target Range</h5>
-    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y">
+    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y action-set-x-y-vector">
       <label for="min">Min:</label>
       <input id="min" placeholder="Min width" type="number" value="0" />
       <label for="max">Max:</label>
@@ -112,7 +115,7 @@
         <label for="height">Height</label>
       </div>
     </div>
-    <div class="inputs col-2 action-ui action-set-x-y" style="display: none;">
+    <div class="inputs col-2 action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
       <div class="input-checkbox">
         <input type="checkbox" id="x" name="x" value="Bike" checked>
         <label for="x">X-Axis</label>
@@ -165,6 +168,9 @@
           case 'set-scale':
               applyButton.innerHTML = 'Scale Selection to CSV Values'
               break
+          case 'set-x-y-vector':
+            applyButton.innerHTML = 'Setting Points of Vectors to CSV Values'
+            break
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection to CSV Values'
             break
@@ -183,6 +189,9 @@
             break
           case 'set-scale':
             applyButton.innerHTML = 'Scale Selection randomly'
+            break
+          case 'set-x-y-vector':
+            applyButton.innerHTML = 'Setting Points of Vectors randomly'
             break
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection randomly'

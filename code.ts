@@ -83,6 +83,31 @@ function map(value: number, currentLow: number, currentHigh: number, targetLow: 
   return targetLow + ((targetHigh - targetLow) * (value - currentLow)) / (currentHigh - currentLow)
 }
 
+function countPathPoints(d: string): number { // Counts the number of points in a vector path string (d attribute of SVG path)
+  const commandRegex = /([MLZ])([^MLZ]*)/gi
+  let match
+  let pointCount = 0
+
+  while ((match = commandRegex.exec(d)) !== null) {
+    const command = match[1].toUpperCase()
+    const args = match[2].trim().split(/[\s,]+/).filter(n => n.length > 0)
+
+    switch (command) {
+      case "M":
+        pointCount += 1 // Always 1 move point
+        break
+      case "L":
+        pointCount += Math.floor(args.length / 2) // Each (x, y) pair = 1 point
+        break
+      case "Z":
+        // No point added for Z
+        break
+    }
+  }
+
+  return pointCount
+}
+
 figma.showUI(__html__, { width: 400, height: 500 })
 
 figma.ui.onmessage = (msg) => {
@@ -100,6 +125,7 @@ figma.ui.onmessage = (msg) => {
   const applyToFill = msg.applyTo.fill
   const applyToStroke = msg.applyTo.stroke
   let mappedValues: number[] = []
+  let pointCount: number = 0
 
   if (msg.type === "set-color") {// Set min and max based on the color range
     if (colorRange.length === 0) {
@@ -111,29 +137,41 @@ figma.ui.onmessage = (msg) => {
   } else if (msg.type === "set-scale") { // If the action is set-scale, use the scaleMin and scaleMax
     min = msg.range.scaleMin
     max = msg.range.scaleMax
+  } else if (msg.type === "set-x-y-vector") { // If the action is set-x-y-vector, use the vectorMin and vectorMax
+    if (selection[0].type === "VECTOR") {
+      if (values.length > 0) {
+        pointCount = values.length // If values are provided, use the length of the values array
+      } else {
+        pointCount = countPathPoints(selection[0].vectorPaths[0].data)
+      }
+    } else {
+      figma.notify("Selected element is not a vector. Please select a vector element to set points.", { error: true })
+      return
+    }
   }
 
   if (debugMode) {
-    console.log("Debug Mode: ON")
     console.log("Mode:", msg.type)
     console.log("Input Range:", inputMin, inputMax)
     console.log("Target Range:", min, max)
     console.log("Target ColorRange:", colorRange)
+    console.log("Point Count:", pointCount)
   }
 
   if (!values.length) { // If no values are provided, generate random values
     for (let i = 0; i < selection.length; i++) {
-      mappedValues.push(map(Math.random(), 0, 1, min, max))
+      if (msg.type !== "set-x-y-vector") {
+        mappedValues.push(map(Math.random(), 0, 1, min, max))
+      } else { // If the action is set-x-y-vector, generate Xpoints for each vector
+        for (let j = 0; j < pointCount; j++) {
+          mappedValues.push(map(Math.random(), 0, 1, min, max))
+        }
+      }
     }
   } else { // If values are provided, map them to the target range
     mappedValues = values.map(value =>
       map(value, inputMin, inputMax, min, max)
     )
-  }
-
-  if (debugMode) {
-    console.log("Original Values:", values)
-    console.log("Mapped Values:", mappedValues)
   }
 
   if (selection.length === 0) {
@@ -142,7 +180,14 @@ figma.ui.onmessage = (msg) => {
   } else if (selection.length > mappedValues.length) {
     figma.notify("More elements selected than values provided. Will repeat values.")
   } else if (selection.length < mappedValues.length) {
-    figma.notify("Provided values exceed selected elements.")
+    if (msg.type !== "set-x-y-vector") {
+      figma.notify("Provided values exceed selected elements.")
+    }
+  }
+
+  if (debugMode) {
+    console.log("Original Values:", values)
+    console.log("Mapped Values:", mappedValues)
   }
 
   switch (msg.type) {
@@ -151,12 +196,16 @@ figma.ui.onmessage = (msg) => {
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
         let value = Math.round(mappedValues[i % mappedValues.length])
+        let yBottom = node.y + node.height // Store the original bottom position to keep it unchanged
         value = value === 0 ? 0.01 : value //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
         const width = applyToWidth ? value : node.width
         const height = applyToHeight ? value : node.height
 
         if ('resize' in node && typeof value === 'number' && value > 0) {
           node.resize(width, height)
+          if (applyToHeight){
+            node.y = yBottom - height // Adjust y position to keep the bottom position unchanged
+          }
         }
       }
       figma.notify("w/h updated!")
@@ -167,14 +216,60 @@ figma.ui.onmessage = (msg) => {
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
         let value = Math.round(mappedValues[i % mappedValues.length])
+
         const x = applyToX ? value : node.x
-        const y = applyToY ? value : node.y
+        const y = applyToY ? map(value, min, max, max, min) : node.y //invert the value for y-axis
 
         node.x = x
         node.y = y
       }
 
       figma.notify("x/y updated!")
+      break
+
+    case "set-x-y-vector":
+      // position each selected node based on the mapped values
+      for (let i = 0; i < selection.length; i++) {
+        const node = selection[i]
+        let xOriginal:number = node.x //store the original x position to set the x position of the vector points
+        let yOriginal:number = node.y //store the original y position to set the y position of the vector points
+
+        if (node.type === "VECTOR") {
+          let d: string = "" // Initialize the path data string;
+          let xStep = node.width / (pointCount - 1)
+          let yStep = node.height / (pointCount - 1);
+          
+
+          for (let j = 0; j < pointCount; j++) {
+            let x = j * xStep
+            let y = j * yStep
+            
+            let pointId = (i * pointCount + j)
+            let value = mappedValues[pointId % mappedValues.length]
+            
+            x = applyToX ? (value-xOriginal) : x // If applyToX is true, use the mapped value for x
+            y = applyToY ? map(value, min, max, max, min) - yOriginal : y // If applyToY is true, use the mapped value for y (inverted for y-axis)
+
+            if (j === 0) {
+              d += `M ${x} ${y} ` // Move to the first point
+            } else {
+              d += `L ${x} ${y} ` // Line to the next point
+            }
+          }
+
+          console.log(d);
+
+          node.vectorPaths = [
+            {
+              windingRule: "NONZERO",
+              data: d.trim() // Set the path data to the constructed string
+              // data: "M 50 0 L 50 0 L 100 100 L 150 200" // Set a default path for testing
+            }
+          ];
+        }
+      }
+
+      figma.notify("Vector updated!")
       break
 
     case "set-scale":

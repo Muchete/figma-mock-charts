@@ -108,6 +108,9 @@ figma.ui.onmessage = (msg) => {
     }
     min = 0
     max = colorRange.length - 1
+  } else if (msg.type === "set-scale") { // If the action is set-scale, use the scaleMin and scaleMax
+    min = msg.range.scaleMin
+    max = msg.range.scaleMax
   }
 
   if (debugMode) {
@@ -120,11 +123,11 @@ figma.ui.onmessage = (msg) => {
 
   if (!values.length) { // If no values are provided, generate random values
     for (let i = 0; i < selection.length; i++) {
-      mappedValues.push(Math.round(map(Math.random(), 0, 1, min, max)))
+      mappedValues.push(map(Math.random(), 0, 1, min, max))
     }
   } else { // If values are provided, map them to the target range
     mappedValues = values.map(value =>
-      Math.round(map(value, inputMin, inputMax, min, max))
+      map(value, inputMin, inputMax, min, max)
     )
   }
 
@@ -147,7 +150,7 @@ figma.ui.onmessage = (msg) => {
       // Resize each selected node based on the mapped values
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
-        let value = mappedValues[i % mappedValues.length]
+        let value = Math.round(mappedValues[i % mappedValues.length])
         value = value === 0 ? 0.01 : value //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
         const width = applyToWidth ? value : node.width
         const height = applyToHeight ? value : node.height
@@ -163,27 +166,54 @@ figma.ui.onmessage = (msg) => {
       // position each selected node based on the mapped values
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
-        let value = mappedValues[i % mappedValues.length]
+        let value = Math.round(mappedValues[i % mappedValues.length])
         const x = applyToX ? value : node.x
         const y = applyToY ? value : node.y
 
-        if ('x' in node && typeof x === 'number') {
-          node.x = x
-        }
-        if ('y' in node && typeof y === 'number') {
-          node.y = y
-        }
+        node.x = x
+        node.y = y
       }
 
       figma.notify("x/y updated!")
       break
 
+    case "set-scale":
+      for (let i = 0; i < selection.length; i++) {
+        const node = selection[i]
+        let scaleFactor = mappedValues[i % mappedValues.length]
+        scaleFactor = scaleFactor <= 0 ? 0.01 : scaleFactor //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
+        let xOffset = (node.width * scaleFactor - node.width) / 2
+        let yOffset = (node.height * scaleFactor - node.height) / 2
+
+        if (
+          node.type === "RECTANGLE" ||
+          node.type === "ELLIPSE" ||
+          node.type === "FRAME" ||
+          node.type === "COMPONENT" ||
+          node.type === "INSTANCE" ||
+          node.type === "TEXT" ||
+          node.type === "VECTOR" ||
+          node.type === "GROUP" ||
+          node.type === "STAR"
+        ) {
+          node.rescale(scaleFactor)
+          node.x -= xOffset // Adjust x position to keep the center
+          node.y -= yOffset // Adjust y position to keep the center
+        } else {
+          figma.notify(`Resize not supported on node type: ${node.type}`)
+        }
+
+      }
+
+      figma.notify("Scaled Selection!")
+
+      break
     case "set-color":
       mapColorValues(colorRange).then(mappedColorRange => {
         // color each selected node based on the mapped values
         for (let i = 0; i < selection.length; i++) {
           const node = selection[i]
-          const color = mappedColorRange[mappedValues[i % mappedValues.length]] // Get the color from the mapped color range
+          const color = mappedColorRange[Math.round(mappedValues[i % mappedValues.length])] // Get the color from the mapped color range
 
           if (applyToFill) {
             if ("fills" in node) {

@@ -61,11 +61,13 @@
 <body>
   <select id="action">
     <option value="set-w-h">Set width and/or height</option>
+    <option value="set-scale">Scale</option>
     <option value="set-x-y">Set x and/or y position</option>
     <option value="set-color">Set color</option>
   </select>
 
   <h3 class="action-ui action-set-w-h">Set width and/or height</h3>
+  <h3 class="action-ui action-set-scale" style="display: none;">Scale</h3>
   <h3 class="action-ui action-set-x-y" style="display: none;">Set x and/or y position</h3>
   <h3 class="action-ui action-set-color" style="display: none;">Set fill or stroke color</h3>
   <p>Enter one numeric value per line (or comma-separated):</p>
@@ -87,6 +89,12 @@
       <input id="min" placeholder="Min width" type="number" value="0" />
       <label for="max">Max:</label>
       <input id="max" placeholder="Max width" type="number" value="100" />
+    </div>
+    <div class="inputs col-2 action-ui action-set-scale" style="display: none;">
+      <label for="scale-min">Min:</label>
+      <input id="scale-min" placeholder="Min width" type="number" value="0.5" />
+      <label for="scale-max">Max:</label>
+      <input id="scale-max" placeholder="Max width" type="number" value="2" />
     </div>
     <div class="inputs col-2 action-ui action-set-color" style="display: none;">
       <textarea id="color-input" placeholder="Enter one hex code or variable name (ie. categorical/01) per line"></textarea>
@@ -154,6 +162,9 @@
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection to CSV Values'
             break
+          case 'set-scale':
+              applyButton.innerHTML = 'Scale Selection to CSV Values'
+              break
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection to CSV Values'
             break
@@ -169,6 +180,9 @@
             break
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection randomly'
+            break
+          case 'set-scale':
+            applyButton.innerHTML = 'Scale Selection randomly'
             break
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection randomly'
@@ -186,6 +200,8 @@
         inputMax: document.getElementById('inputMax').value,
         min: document.getElementById('min').value,
         max: document.getElementById('max').value,
+        scaleMin: document.getElementById('scale-min').value,
+        scaleMax: document.getElementById('scale-max').value,
         colorRange: [],      
       }
       const applyTo = {

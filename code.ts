@@ -58,15 +58,11 @@ function clone(val: any): any { // needed to clone objects, as figma colors can'
   return JSON.parse(JSON.stringify(val))
 }
 
-// Check if a string is a valid hex color code
-function isHexColor(str: string): boolean {
+function isHexColor(str: string): boolean {// Check if a string is a valid hex color code
   return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str.trim())
 }
 
-figma.showUI(__html__, { width: 400, height: 500 })
-
-// This function maps a value from one range to another.
-function map(value: number, currentLow: number, currentHigh: number, targetLow: number, targetHigh: number): number {
+function map(value: number, currentLow: number, currentHigh: number, targetLow: number, targetHigh: number): number {// This function maps a value from one range to another.
   currentLow = parseFloat(currentLow.toString())
   currentHigh = parseFloat(currentHigh.toString())
   targetLow = parseFloat(targetLow.toString())
@@ -86,6 +82,8 @@ function map(value: number, currentLow: number, currentHigh: number, targetLow: 
   }
   return targetLow + ((targetHigh - targetLow) * (value - currentLow)) / (currentHigh - currentLow)
 }
+
+figma.showUI(__html__, { width: 400, height: 500 })
 
 figma.ui.onmessage = (msg) => {
   const values: number[] = msg.values

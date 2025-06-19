@@ -60,13 +60,14 @@
 
 <body>
   <select id="action">
-    <option value="set-width-height">Set width and/or height</option>
+    <option value="set-w-h">Set width and/or height</option>
     <option value="set-x-y">Set x and/or y position</option>
-    <!-- <option value="set-color">Set color</option> -->
+    <option value="set-color">Set color</option>
   </select>
 
-  <h3 class="action-set-width-height">Set width and/or height</h3>
-  <h3 class="action-set-x-y" style="display: none;">Set x and/or y position</h3>
+  <h3 class="action-ui action-set-w-h">Set width and/or height</h3>
+  <h3 class="action-ui action-set-x-y" style="display: none;">Set x and/or y position</h3>
+  <h3 class="action-ui action-set-color" style="display: none;">Set fill or stroke color</h3>
   <p>Enter one numeric value per line (or comma-separated):</p>
   <p class="small">If no values are provided, random values will be generated.</p>
   <textarea id="csv-input" placeholder="e.g. 100, 200, 150"></textarea>
@@ -81,16 +82,19 @@
   </div>
   <div id="target-range">
     <h5>Target Range</h5>
-    <div class="inputs col-2">
+    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y">
       <label for="min">Min:</label>
       <input id="min" placeholder="Min width" type="number" value="0" />
       <label for="max">Max:</label>
       <input id="max" placeholder="Max width" type="number" value="100" />
     </div>
+    <div class="inputs col-2 action-ui action-set-color" style="display: none;">
+      <textarea id="color-input" placeholder="Enter one hex code or variable name (ie. categorical/01) per line"></textarea>
+    </div>
   </div>
   <div id="applyto">
     <h5>Apply to</h5>
-    <div class="inputs col-2 action-set-width-height">
+    <div class="inputs col-2 action-ui action-set-w-h">
       <div class="input-checkbox">
         <input type="checkbox" id="width" name="width" value="Bike" checked>
         <label for="width">Width</label>
@@ -100,7 +104,7 @@
         <label for="height">Height</label>
       </div>
     </div>
-    <div class="inputs col-2 action-set-x-y" style="display: none;">
+    <div class="inputs col-2 action-ui action-set-x-y" style="display: none;">
       <div class="input-checkbox">
         <input type="checkbox" id="x" name="x" value="Bike" checked>
         <label for="x">X-Axis</label>
@@ -108,6 +112,16 @@
       <div class="input-checkbox">
         <input type="checkbox" id="y" name="y" value="Car">
         <label for="y">Y-Axis</label>
+      </div>
+    </div>
+    <div class="inputs col-2 action-ui action-set-color" style="display: none;">
+      <div class="input-checkbox">
+        <input type="checkbox" id="fill" name="fill" value="Bike" checked>
+        <label for="fill">Fill</label>
+      </div>
+      <div class="input-checkbox">
+        <input type="checkbox" id="stroke" name="stroke" value="Car">
+        <label for="stroke">Stroke</label>
       </div>
     </div>
   </div>
@@ -121,31 +135,27 @@
 
     const modeChange = () => {
       action = actionSelect.value
-      if (action === 'set-width-height') {
-        document.querySelectorAll('.action-set-width-height').forEach(element => {
-          element.style.display = "flex"
-        })
-        document.querySelectorAll('.action-set-x-y').forEach(element => {
-          element.style.display = "none"
-        })
-      } else if (action === 'set-x-y') {
-        document.querySelectorAll('.action-set-width-height').forEach(element => {
-          element.style.display = "none"
-        })
-        document.querySelectorAll('.action-set-x-y').forEach(element => {
-          element.style.display = "flex"
-        })
-      }
+      
+      document.querySelectorAll('.action-ui').forEach(element => {
+        element.style.display = "none"
+      })
+
+      document.querySelectorAll('.action-' + action).forEach(element => {
+        element.style.display = "flex"
+      })
 
       if (csvInput.value.trim().length > 0) { // If there is input in the CSV textarea
         document.getElementById('input-range').style.display = 'block'
 
         switch (action) {
-          case 'set-width-height':
+          case 'set-w-h':
             applyButton.innerHTML = 'Scale Selection to CSV Values'
             break
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection to CSV Values'
+            break
+          case 'set-color':
+            applyButton.innerHTML = 'Coloring Selection to CSV Values'
             break
         }
 
@@ -154,11 +164,14 @@
         applyButton.innerHTML = 'Scale Selection randomly'
 
         switch (action) {
-          case 'set-width-height':
+          case 'set-w-h':
             applyButton.innerHTML = 'Scale Selection randomly'
             break
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection randomly'
+            break
+          case 'set-color':
+            applyButton.innerHTML = 'Coloring Selection randomly'
             break
         }
       }
@@ -173,12 +186,15 @@
         inputMax: document.getElementById('inputMax').value,
         min: document.getElementById('min').value,
         max: document.getElementById('max').value,
+        colorRange: [],      
       }
       const applyTo = {
         width: document.getElementById('width').checked,
         height: document.getElementById('height').checked,
         x: document.getElementById('x').checked,
         y: document.getElementById('y').checked,
+        fill: document.getElementById('fill').checked,
+        stroke: document.getElementById('stroke').checked
       }
 
       const raw = document.getElementById('csv-input').value
@@ -196,6 +212,16 @@
               return trimmed === "" || isNaN(num) ? null : num
             })
           })
+      }
+
+      const rawColors = document.getElementById('color-input').value
+      if (rawColors.length === 0) {
+        range.colorRange = []
+      } else {
+        range.colorRange = rawColors
+        .split(/\r?\n/)               // Split by line
+        .map(line => line.trim())     // Trim whitespace
+        .filter(line => line !== ""); // Remove empty lines
       }
 
       parent.postMessage({ pluginMessage: { type: action /* ie. set-x-y */, values: entries, range, applyTo } }, '*')

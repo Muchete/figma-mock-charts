@@ -1,3 +1,68 @@
+const debugMode: boolean = true // Set to true to enable debug mode
+
+async function getColorFromVariable(variableName: string): Promise<RGB | null> { // Fetches the color value from a Figma variable by its name
+  // Step 1: Get all color variables
+
+
+  const colorVariables = await figma.variables.getLocalVariablesAsync("COLOR")
+  const variable = colorVariables.find(v => v.name === variableName)
+
+  if (!variable) {
+    console.warn(`Variable "${variableName}" not found.`)
+    return null
+  }
+
+  // Step 2: Get the variable's collection and default mode
+  const collections = await figma.variables.getLocalVariableCollectionsAsync()
+  const collection = collections.find(c => c.id === variable.variableCollectionId)
+
+  if (!collection) {
+    console.warn("Variable collection not found.")
+    return null
+  }
+
+  const modeId = collection.defaultModeId
+
+  // Step 3: Get the color value for the default mode
+  const value = variable.valuesByMode[modeId]
+
+  if (value && typeof value === "object" && "r" in value) {
+    return value as RGB
+  }
+  return null
+}
+
+async function mapColorValues(colorRange: string[]) { // Maps color names or hex codes to actual RGB colors
+  let mappedColorRange: any = []
+
+  // set colorRange to actual colors
+  for (let i = 0; i < colorRange.length; i++) {
+    let cName: any = colorRange[i]
+
+    if (isHexColor(cName)) {
+      mappedColorRange[i] = cName // If it's a hex color, use it directly
+    } else {
+      cName = await getColorFromVariable(cName) // Otherwise, get the color from the variable
+      if (cName) {
+        mappedColorRange[i] = cName as RGB
+      } else {
+        mappedColorRange[i] = "#FF00FF88" // Default color if variable not found
+      }
+    }
+  }
+
+  return mappedColorRange
+}
+
+function clone(val: any): any { // needed to clone objects, as figma colors can't be set directly
+  return JSON.parse(JSON.stringify(val))
+}
+
+// Check if a string is a valid hex color code
+function isHexColor(str: string): boolean {
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str.trim())
+}
+
 figma.showUI(__html__, { width: 400, height: 500 })
 
 // This function maps a value from one range to another.
@@ -26,19 +91,35 @@ figma.ui.onmessage = (msg) => {
   const values: number[] = msg.values
   const inputMin = msg.range.inputMin ? msg.range.inputMin : Math.min(...values) // Use the provided inputMin or calculate the minimum from the values
   const inputMax = msg.range.inputMax ? msg.range.inputMax : Math.max(...values) // Use the provided inputMax or calculate the maximum from the values
-  const min: number = msg.range.min
-  const max: number = msg.range.max
+  let min: number = msg.range.min
+  let max: number = msg.range.max
+  const colorRange: [] = msg.range.colorRange
   const selection = figma.currentPage.selection
   const applyToWidth = msg.applyTo.width
   const applyToHeight = msg.applyTo.height
   const applyToX = msg.applyTo.x
   const applyToY = msg.applyTo.y
+  const applyToFill = msg.applyTo.fill
+  const applyToStroke = msg.applyTo.stroke
   let mappedValues: number[] = []
+  let mappedColorRange: any = []
 
   console.log(msg.applyTo)
 
-  console.log("Input Range:", inputMin, inputMax)
-  console.log("Target Range:", min, max)
+  if (msg.type === "set-color") {// Set min and max based on the color range
+    if (colorRange.length === 0) {
+      figma.notify("No colors provided.", { error: true })
+      return
+    }
+    min = 0
+    max = colorRange.length - 1
+  }
+
+  if (debugMode) {
+    console.log("Input Range:", inputMin, inputMax)
+    console.log("Target Range:", min, max)
+    console.log("Target ColorRange:", colorRange)
+  }
 
   if (!values.length) { // If no values are provided, generate random values
     for (let i = 0; i < selection.length; i++) {
@@ -50,8 +131,10 @@ figma.ui.onmessage = (msg) => {
     )
   }
 
-  console.log("Original Values:", values)
-  console.log("Mapped Values:", mappedValues)
+  if (debugMode) {
+    console.log("Original Values:", values)
+    console.log("Mapped Values:", mappedValues)
+  }
 
   if (selection.length === 0) {
     figma.notify("No elements selected.")
@@ -63,7 +146,7 @@ figma.ui.onmessage = (msg) => {
   }
 
   switch (msg.type) {
-    case "set-width-height":
+    case "set-w-h":
       // Resize each selected node based on the mapped values
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
@@ -76,7 +159,7 @@ figma.ui.onmessage = (msg) => {
           node.resize(width, height)
         }
       }
-      figma.notify("Widths updated!")
+      figma.notify("w/h updated!")
       break
 
     case "set-x-y":
@@ -94,7 +177,39 @@ figma.ui.onmessage = (msg) => {
           node.y = y
         }
       }
-      figma.notify("Widths updated!")
+
+      figma.notify("x/y updated!")
+      break
+
+    case "set-color":
+      mapColorValues(colorRange).then(mappedColorRange => {
+        // color each selected node based on the mapped values
+        for (let i = 0; i < selection.length; i++) {
+          const node = selection[i]
+          const color = mappedColorRange[mappedValues[i % mappedValues.length]] // Get the color from the mapped color range
+
+          if (applyToFill) {
+            if ("fills" in node) {
+              const fills = clone(node.fills)
+              fills[0] = figma.util.solidPaint(color, fills[0])
+              node.fills = fills
+            } else {
+              console.error("Selected element does not support setting fills")
+            }
+          }
+          if (applyToStroke) {
+            if ("strokes" in node) {
+              const strokes = clone(node.strokes)
+              strokes[0] = figma.util.solidPaint(color, strokes[0])
+              node.strokes = strokes
+            } else {
+              console.error("Selected element does not support setting strokes")
+            }
+          }
+        }
+
+        figma.notify("Colors updated!")
+      })
 
       break
     default:

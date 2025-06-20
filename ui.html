@@ -2,221 +2,318 @@
 <html>
 
 <head>
+  <!-- Figma Plugin UI -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/figma-plugin-ds.css">
+  
+  <!-- Custom overrides -->
   <style>
     body {
-      font-family: sans-serif;
+      background-color: rgba(149, 185, 172, 0.1);
+      padding-bottom: 12px;
     }
 
-    h3,
-    h5 {
-      margin: 0 0 5px 0;
+    .type {
+      font-size: 0.875rem;
     }
 
-    p {
-      margin: 10px 0;
+    .type--small {
+      font-size: .75rem;
     }
 
-    p.small {
-      margin: 5px 0;
-      font-size: 0.8rem;
-      color: #666
+    .type--large {
+      font-size: 1rem;
     }
 
-    textarea {
-      width: 100%;
-      max-width: 100%;
-      min-width: 100%;
-      height: 100px;
-      margin-bottom: 10px;
+    .type--xlarge {
+      font-size: 1.25rem;
     }
 
-    select,
-    .inputs {
-      margin-bottom: 10px;
-      display: flex;
+    .wrapper {
+      padding: 4px 12px;
+      margin: auto;
+    }
+
+    section {
+      margin-bottom: 1rem;
     }
 
     .col-2 {
-      justify-content: space-between;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
-
-    .input-checkbox {
       display: flex;
-      align-items: left;
-      width: 50%;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    input[type="number"] {
-      width: 100%;
+    .col-2 .input {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    button {
-      padding: 5px 10px;
+    .col-2>* {
+      flex: 1;
+    }
+
+    .input__label {
+      font-size: var(--font-size-xsmall);
+    }
+
+    textarea:required:invalid,
+    input:required:invalid {
+      border: 1px red solid;
     }
   </style>
 </head>
 
 <body>
-  <select id="action">
-    <option value="set-w-h">Set width and/or height</option>
-    <option value="set-scale">Scale</option>
-    <option value="set-x-y">Set x and/or y position</option>
-    <option value="set-color">Set color</option>
-    <option value="set-opacity">Set opacity</option>
-    <option value="set-x-y-vector">Set x and/or y of Vector</option>
-  </select>
+  <div class="wrapper">
+    <section class="section__intro">
+      <h1 class="type--xlarge type--bold">Mock Chart Generator</h1>
+      <div class="onboarding-tip">
+        <div class="icon icon--smiley"></div>
+        <div class="onboarding-tip__msg">Hello, this is an intro message.</div>
+      </div>
+    </section>
 
-  <h3 class="action-ui action-set-w-h">Set width and/or height</h3>
-  <h3 class="action-ui action-set-scale" style="display: none;">Scale</h3>
-  <h3 class="action-ui action-set-x-y" style="display: none;">Set x and/or y position</h3>
-  <h3 class="action-ui action-set-x-y-vector" style="display: none;">Set x and/or y of Vector</h3>
-  <h3 class="action-ui action-set-color" style="display: none;">Set fill or stroke color</h3>
-  <h3 class="action-ui action-set-opacity" style="display: none;">Set opacity</h3>
-  <p>Enter one numeric value per line (or comma-separated):</p>
-  <p class="small">If no values are provided, random values will be generated.</p>
-  <textarea id="csv-input" placeholder="e.g. 100, 200, 150"></textarea>
-  <div id="input-range" style="display: none;">
-    <h5>Input Range</h5>
-    <div class="inputs col-2">
-      <label for="inputMin">Min:</label>
-      <input id="inputMin" placeholder="auto" type="number" value="0" />
-      <label for="inputMax">Max:</label>
-      <input id="inputMax" placeholder="auto" type="number" />
-    </div>
-  </div>
-  <div id="target-range">
-    <h5>Target Range (px)</h5>
-    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y action-set-x-y-vector action-set-opacity">
-      <label for="min">Min:</label>
-      <input id="min" placeholder="Minimum value" type="number" value="0" />
-      <label for="max">Max:</label>
-      <input id="max" placeholder="Maximum value" type="number" value="100" />
-    </div>
-    <div class="inputs col-2 action-ui action-set-scale" style="display: none;">
-      <label for="scale-min">Min:</label>
-      <input id="scale-min" placeholder="Minimum scale" type="number" value="0.5" />
-      <label for="scale-max">Max:</label>
-      <input id="scale-max" placeholder="Maximum scale" type="number" value="2" />
-    </div>
-    <div class="inputs col-2 action-ui action-set-color" style="display: none;">
-      <textarea id="color-input" placeholder="Enter one hex code or variable name (ie. categorical/01) per line"></textarea>
-    </div>
-  </div>
-  <div id="applyto">
-    <h5>Apply to</h5>
-    <div class="inputs col-2 action-ui action-set-w-h">
-      <div class="input-checkbox">
-        <input type="checkbox" id="width" name="width" value="Width" checked>
-        <label for="width">Width</label>
-      </div>
-      <div class="input-checkbox">
-        <input type="checkbox" id="height" name="height" value="Height">
-        <label for="height">Height</label>
-      </div>
-    </div>
-    <div class="inputs col-2 action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
-      <div class="input-checkbox">
-        <input type="checkbox" id="x" name="x" value="X-Axis" checked>
-        <label for="x">X-Axis</label>
-      </div>
-      <div class="input-checkbox">
-        <input type="checkbox" id="y" name="y" value="Y-Axis">
-        <label for="y">Y-Axis</label>
-      </div>
-    </div>
-    <div class="inputs col-2 action-ui action-set-opacity" style="display: none;">
-      <div class="input-checkbox">
-        <input type="checkbox" id="opacity" name="opacity" value="Opacity" checked disabled>
-        <label for="opacity">Opacity</label>
-      </div>
-    </div>
-    <div class="inputs col-2 action-ui action-set-color" style="display: none;">
-      <div class="input-checkbox">
-        <input type="checkbox" id="fill" name="fill" value="Fill" checked>
-        <label for="fill">Fill</label>
-      </div>
-      <div class="input-checkbox">
-        <input type="checkbox" id="stroke" name="stroke" value="Stroke">
-        <label for="stroke">Stroke</label>
-      </div>
-    </div>
-  </div>
-  <button id="apply-button">Scale Selection randomly</button>
+    <section class="section__action">
+      <h2 class="type type--bold">Select Action</h2>
+      <select id="action" class="select-menu" onchange="actionChange();">
+        <option value="set-w-h">Set Width and/or Height</option>
+        <option value="set-scale">Scale</option>
+        <option value="set-x-y">Set X and/or Y Position</option>
+        <option value="set-x-y-vector">Set X and/or Y Positions of a Vector</option>
+        <option value="set-color">Set Color</option>
+        <option value="set-opacity">Set Opacity</option>
+      </select>
+    </section>
 
+    <section class="section__input">
+      <h2 class="type type--bold">Select Input/Output</h2>
+      <div class="radio">
+        <input id="input-random" type="radio" class="radio__button" value="Value" name="radioGroup"
+          onchange="inputChange();" checked>
+        <label for="input-random" class="radio__label">Random Data</label>
+        <input id="input-csv" type="radio" class="radio__button" value="Value" name="radioGroup"
+          onchange="inputChange();">
+        <label for="input-csv" class="radio__label">CSV Input</label>
+      </div>
+      <div id="csv-input-fields" style="display: none;">
+        <textarea class="textarea" required id="csv-input" rows="6" placeholder="Insert CSV data here"
+          oninput="checkButtonState();"></textarea>
+        <h3 class="type--small">Input Range</h3>
+        <div class="col-2">
+          <div class="input">
+            <label for="inputMin" class="input__label">Min:</label>
+            <input type="number" class="input__field" value="0" id="inputMin" placeholder="auto">
+          </div>
+          <div class="input">
+            <label for="inputMax" class="input__label">Max:</label>
+            <input type="number" class="input__field" value="Value" id="inputMax" placeholder="auto">
+          </div>
+        </div>
+      </div>
+
+      <div class="action-ui action-set-w-h action-set-x-y action-set-x-y-vector action-set-opacity">
+        <h3 class="type--small">Output Range</h3>
+        <div class="col-2">
+          <div class="input">
+            <label for="min" class="input__label">Min:</label>
+            <input type="number" class="input__field" value="0" id="min" placeholder="Minimum value" required>
+          </div>
+          <div class="input">
+            <label for="max" class="input__label">Max:</label>
+            <input type="number" class="input__field" value="100" id="max" placeholder="Maximum value" required>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-scale" style="display: none;">
+        <h3 class="type--small">Factor</h3>
+        <div class="col-2">
+          <div class="input">
+            <label for="scale-min" class="input__label">Min:</label>
+            <input type="number" class="input__field" value="0.5" id="scale-min" placeholder="Minimum value" required>
+          </div>
+          <div class="input">
+            <label for="scale-max" class="input__label">Max:</label>
+            <input type="number" class="input__field" value="2" id="scale-max" placeholder="Maximum value" required>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-color" style="display: none;">
+        <h3 class="type--small">Output Colors</h3>
+        <textarea class="textarea" required id="color-input" rows="6"
+          placeholder="Enter one hex code or variable name (ie. sequential/Red-1) per line" oninput="checkButtonState();"></textarea>
+      </div>
+    </section>
+
+    <section class="section__applyto">
+      <h2 class="type--small">Apply to</h2>
+      <div class="action-ui action-set-w-h">
+        <div class="col-2">
+          <div class="checkbox">
+            <input id="width" type="checkbox" class="checkbox__box" checked>
+            <label for="width" class="checkbox__label">Width</label>
+          </div>
+          <div class="checkbox">
+            <input id="height" type="checkbox" class="checkbox__box">
+            <label for="height" class="checkbox__label">Height</label>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
+        <div class="col-2">
+          <div class="checkbox">
+            <input id="x" type="checkbox" class="checkbox__box" checked>
+            <label for="x" class="checkbox__label">X-Axis</label>
+          </div>
+          <div class="checkbox">
+            <input id="y" type="checkbox" class="checkbox__box">
+            <label for="y" class="checkbox__label">Y-Axis</label>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-color" style="display: none;">
+        <div class="col-2">
+          <div class="checkbox">
+            <input id="fill" type="checkbox" class="checkbox__box" checked>
+            <label for="fill" class="checkbox__label">Fill</label>
+          </div>
+          <div class="checkbox">
+            <input id="stroke" type="checkbox" class="checkbox__box">
+            <label for="stroke" class="checkbox__label">Stroke</label>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-scale" style="display: none;">
+        <div class="col-2">
+          <div class="checkbox">
+            <input id="scale" type="checkbox" class="checkbox__box" checked disabled>
+            <label for="scale" class="checkbox__label">Scale</label>
+          </div>
+        </div>
+      </div>
+      <div class="action-ui action-set-opacity" style="display: none;">
+        <div class="col-2">
+          <div class="checkbox">
+            <input id="opacity" type="checkbox" class="checkbox__box" checked disabled>
+            <label for="opacity" class="checkbox__label">Opacity</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <button class="button button--primary" id="apply-button" onclick="applyAction();">Scale Selection randomly</button>
+  </div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/iife/figma-plugin-ds.js"></script>
   <script>
+    //initialize the plugin components
+    selectMenu.init() //initiates the select menu component
+    disclosure.init() //initiates the disclosure component
+
+    // Define the initial state of the UI
     const actionSelect = document.getElementById('action')
     let action = actionSelect.value
+    let inputTypeCSV = false
     const csvInput = document.getElementById('csv-input')
+    const colorInput = document.getElementById('color-input')
     const applyButton = document.getElementById('apply-button')
 
-    const modeChange = () => {
-      action = actionSelect.value
-      
-      document.querySelectorAll('.action-ui').forEach(element => {
-        element.style.display = "none"
-      })
-
-      document.querySelectorAll('.action-' + action).forEach(element => {
-        element.style.display = "flex"
-      })
-
-      if (csvInput.value.trim().length > 0) { // If there is input in the CSV textarea
-        document.getElementById('input-range').style.display = 'block'
-
+    // Rename the button text based on the selected action
+    const renameButtonText = () => {
+      if (inputTypeCSV) { // CSV Texts
         switch (action) {
           case 'set-w-h':
+            applyButton.innerHTML = 'Scale Selection to CSV Values'
+            break
+          case 'set-scale':
             applyButton.innerHTML = 'Scale Selection to CSV Values'
             break
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection to CSV Values'
             break
-          case 'set-scale':
-              applyButton.innerHTML = 'Scale Selection to CSV Values'
-              break
           case 'set-x-y-vector':
-            applyButton.innerHTML = 'Setting Points of Vectors to CSV Values'
+            applyButton.innerHTML = 'Set Points of Vectors to CSV Values'
             break
           case 'set-color':
-            applyButton.innerHTML = 'Coloring Selection to CSV Values'
+            applyButton.innerHTML = 'Color Selection to CSV Values'
             break
           case 'set-opacity':
-            applyButton.innerHTML = 'Setting Opacity of Selection to CSV Values'
+            applyButton.innerHTML = 'Set Opacity of Selection to CSV Values'
             break
         }
-
-      } else { // If the CSV textarea is empty
-        document.getElementById('input-range').style.display = 'none'
-        applyButton.innerHTML = 'Scale Selection randomly'
-
+      } else { // Random Texts
         switch (action) {
           case 'set-w-h':
+            applyButton.innerHTML = 'Scale Selection randomly'
+            break
+          case 'set-scale':
             applyButton.innerHTML = 'Scale Selection randomly'
             break
           case 'set-x-y':
             applyButton.innerHTML = 'Position Selection randomly'
             break
-          case 'set-scale':
-            applyButton.innerHTML = 'Scale Selection randomly'
-            break
           case 'set-x-y-vector':
-            applyButton.innerHTML = 'Setting Points of Vectors randomly'
+            applyButton.innerHTML = 'Set Points of Vectors randomly'
             break
           case 'set-color':
-            applyButton.innerHTML = 'Coloring Selection randomly'
+            applyButton.innerHTML = 'Color Selection randomly'
             break
           case 'set-opacity':
-            applyButton.innerHTML = 'Setting Opacity of Selection randomly'
+            applyButton.innerHTML = 'Set Opacity of Selection randomly'
             break
         }
       }
     }
 
-    actionSelect.addEventListener('change', modeChange)
-    csvInput.addEventListener('input', modeChange)
+    // Show or hide the CSV input fields based on the selected input type
+    const inputChange = () => {
+      const csvFields = document.getElementById('csv-input-fields')
+      if (document.getElementById('input-csv').checked) {
+        csvFields.style.display = 'block'
+        inputTypeCSV = true
+      } else {
+        csvFields.style.display = 'none'
+        inputTypeCSV = false
+      }
+      checkButtonState()
+      renameButtonText()
+    }
 
-    applyButton.onclick = () => {
+    // If the CSV input is empty, disable the apply button
+    const checkButtonState = () => {
+      console.log("action:", action, "inputTypeCSV:", inputTypeCSV, "csvInput.value:", csvInput.value.length, "colorInput.value:", colorInput.value.length)
+      if (csvInput.value.length === 0 && inputTypeCSV) {
+        applyButton.disabled = true
+      } else if (action === 'set-color' && colorInput.value.length === 0) {
+        applyButton.disabled = true
+      } else {
+        applyButton.disabled = false
+      }
+    }
+
+    // When the action is changed, update the UI to show the relevant fields
+    const actionChange = () => {
+      action = actionSelect.value
+
+      document.querySelectorAll('.action-ui').forEach(element => {
+        element.style.display = "none"
+      })
+
+      document.querySelectorAll('.action-' + action).forEach(element => {
+        element.style.display = "block"
+      })
+
+      checkButtonState()
+      renameButtonText()
+    }
+
+    // Do the important stuff when the button is clicked
+    const applyAction = () => {
+      const raw = csvInput.value
+      let entries = []
       const range = {
         inputMin: document.getElementById('inputMin').value,
         inputMax: document.getElementById('inputMax').value,
@@ -224,7 +321,7 @@
         max: document.getElementById('max').value,
         scaleMin: document.getElementById('scale-min').value,
         scaleMax: document.getElementById('scale-max').value,
-        colorRange: [],      
+        colorRange: [],
       }
       const applyTo = {
         width: document.getElementById('width').checked,
@@ -236,11 +333,7 @@
         opacity: document.getElementById('opacity').checked
       }
 
-      const raw = document.getElementById('csv-input').value
-      let entries = []
-      if (raw.length === 0) {
-        entries = []
-      } else {
+      if (inputTypeCSV && raw.length !== 0) { // CSV Input formatting
         entries = raw
           .split(/\r?\n/) // Split into lines first (preserve empty lines)
           .flatMap(line => {
@@ -253,18 +346,22 @@
           })
       }
 
-      const rawColors = document.getElementById('color-input').value
-      if (rawColors.length === 0) {
-        range.colorRange = []
+      if (action === 'set-color') {
+        const rawColors = colorInput.value
+        if (rawColors.length === 0) {
+          range.colorRange = []
+        } else {
+          range.colorRange = rawColors
+            .split(/\r?\n/)               // Split by line
+            .map(line => line.trim())     // Trim whitespace
+            .filter(line => line !== "") // Remove empty lines
+        }
       } else {
-        range.colorRange = rawColors
-        .split(/\r?\n/)               // Split by line
-        .map(line => line.trim())     // Trim whitespace
-        .filter(line => line !== ""); // Remove empty lines
+        range.colorRange = []
       }
 
       parent.postMessage({ pluginMessage: { type: action /* ie. set-x-y */, values: entries, range, applyTo } }, '*')
-    };
+    }
 
   </script>
 </body>

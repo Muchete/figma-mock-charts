@@ -108,7 +108,7 @@ function countPathPoints(d: string): number { // Counts the number of points in 
   return pointCount
 }
 
-figma.showUI(__html__, { width: 400, height: 500 })
+figma.showUI(__html__, { width: 400, height: 612 })
 
 figma.ui.onmessage = (msg) => {
   const values: number[] = msg.values

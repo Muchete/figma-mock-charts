@@ -64,6 +64,7 @@
     <option value="set-scale">Scale</option>
     <option value="set-x-y">Set x and/or y position</option>
     <option value="set-color">Set color</option>
+    <option value="set-opacity">Set opacity</option>
     <option value="set-x-y-vector">Set x and/or y of Vector</option>
   </select>
 
@@ -72,6 +73,7 @@
   <h3 class="action-ui action-set-x-y" style="display: none;">Set x and/or y position</h3>
   <h3 class="action-ui action-set-x-y-vector" style="display: none;">Set x and/or y of Vector</h3>
   <h3 class="action-ui action-set-color" style="display: none;">Set fill or stroke color</h3>
+  <h3 class="action-ui action-set-opacity" style="display: none;">Set opacity</h3>
   <p>Enter one numeric value per line (or comma-separated):</p>
   <p class="small">If no values are provided, random values will be generated.</p>
   <textarea id="csv-input" placeholder="e.g. 100, 200, 150"></textarea>
@@ -86,17 +88,17 @@
   </div>
   <div id="target-range">
     <h5>Target Range (px)</h5>
-    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y action-set-x-y-vector">
+    <div class="inputs col-2 action-ui action-set-w-h action-set-x-y action-set-x-y-vector action-set-opacity">
       <label for="min">Min:</label>
-      <input id="min" placeholder="Min width" type="number" value="0" />
+      <input id="min" placeholder="Minimum value" type="number" value="0" />
       <label for="max">Max:</label>
-      <input id="max" placeholder="Max width" type="number" value="100" />
+      <input id="max" placeholder="Maximum value" type="number" value="100" />
     </div>
     <div class="inputs col-2 action-ui action-set-scale" style="display: none;">
       <label for="scale-min">Min:</label>
-      <input id="scale-min" placeholder="Min width" type="number" value="0.5" />
+      <input id="scale-min" placeholder="Minimum scale" type="number" value="0.5" />
       <label for="scale-max">Max:</label>
-      <input id="scale-max" placeholder="Max width" type="number" value="2" />
+      <input id="scale-max" placeholder="Maximum scale" type="number" value="2" />
     </div>
     <div class="inputs col-2 action-ui action-set-color" style="display: none;">
       <textarea id="color-input" placeholder="Enter one hex code or variable name (ie. categorical/01) per line"></textarea>
@@ -106,31 +108,37 @@
     <h5>Apply to</h5>
     <div class="inputs col-2 action-ui action-set-w-h">
       <div class="input-checkbox">
-        <input type="checkbox" id="width" name="width" value="Bike" checked>
+        <input type="checkbox" id="width" name="width" value="Width" checked>
         <label for="width">Width</label>
       </div>
       <div class="input-checkbox">
-        <input type="checkbox" id="height" name="height" value="Car">
+        <input type="checkbox" id="height" name="height" value="Height">
         <label for="height">Height</label>
       </div>
     </div>
     <div class="inputs col-2 action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
       <div class="input-checkbox">
-        <input type="checkbox" id="x" name="x" value="Bike" checked>
+        <input type="checkbox" id="x" name="x" value="X-Axis" checked>
         <label for="x">X-Axis</label>
       </div>
       <div class="input-checkbox">
-        <input type="checkbox" id="y" name="y" value="Car">
+        <input type="checkbox" id="y" name="y" value="Y-Axis">
         <label for="y">Y-Axis</label>
+      </div>
+    </div>
+    <div class="inputs col-2 action-ui action-set-opacity" style="display: none;">
+      <div class="input-checkbox">
+        <input type="checkbox" id="opacity" name="opacity" value="Opacity" checked disabled>
+        <label for="opacity">Opacity</label>
       </div>
     </div>
     <div class="inputs col-2 action-ui action-set-color" style="display: none;">
       <div class="input-checkbox">
-        <input type="checkbox" id="fill" name="fill" value="Bike" checked>
+        <input type="checkbox" id="fill" name="fill" value="Fill" checked>
         <label for="fill">Fill</label>
       </div>
       <div class="input-checkbox">
-        <input type="checkbox" id="stroke" name="stroke" value="Car">
+        <input type="checkbox" id="stroke" name="stroke" value="Stroke">
         <label for="stroke">Stroke</label>
       </div>
     </div>
@@ -173,6 +181,9 @@
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection to CSV Values'
             break
+          case 'set-opacity':
+            applyButton.innerHTML = 'Setting Opacity of Selection to CSV Values'
+            break
         }
 
       } else { // If the CSV textarea is empty
@@ -194,6 +205,9 @@
             break
           case 'set-color':
             applyButton.innerHTML = 'Coloring Selection randomly'
+            break
+          case 'set-opacity':
+            applyButton.innerHTML = 'Setting Opacity of Selection randomly'
             break
         }
       }
@@ -218,7 +232,8 @@
         x: document.getElementById('x').checked,
         y: document.getElementById('y').checked,
         fill: document.getElementById('fill').checked,
-        stroke: document.getElementById('stroke').checked
+        stroke: document.getElementById('stroke').checked,
+        opacity: document.getElementById('opacity').checked
       }
 
       const raw = document.getElementById('csv-input').value

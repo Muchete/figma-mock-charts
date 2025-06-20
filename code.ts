@@ -124,8 +124,14 @@ figma.ui.onmessage = (msg) => {
   const applyToY = msg.applyTo.y
   const applyToFill = msg.applyTo.fill
   const applyToStroke = msg.applyTo.stroke
+  const applyToOpacity = msg.applyTo.opacity
   let mappedValues: number[] = []
   let pointCount: number = 0
+
+  if (selection.length === 0) {
+    figma.notify("No elements selected.")
+    return
+  }
 
   if (msg.type === "set-color") {// Set min and max based on the color range
     if (colorRange.length === 0) {
@@ -134,9 +140,15 @@ figma.ui.onmessage = (msg) => {
     }
     min = 0
     max = colorRange.length - 1
+
+  } else if (msg.type === "set-opacity") { // If the action is set-opacity, use the min and max from the range
+    if (!min || min < 0) min = 0 // Ensure min is at least 0 and not undefined
+    if (!max || max > 100) max = 100 //Ensure max is at most 100 and not undefined
+
   } else if (msg.type === "set-scale") { // If the action is set-scale, use the scaleMin and scaleMax
     min = msg.range.scaleMin
     max = msg.range.scaleMax
+
   } else if (msg.type === "set-x-y-vector") { // If the action is set-x-y-vector, use the vectorMin and vectorMax
     if (selection[0].type === "VECTOR") {
       if (values.length > 0) {
@@ -174,10 +186,7 @@ figma.ui.onmessage = (msg) => {
     )
   }
 
-  if (selection.length === 0) {
-    figma.notify("No elements selected.")
-    return
-  } else if (selection.length > mappedValues.length) {
+  if (selection.length > mappedValues.length) {
     figma.notify("More elements selected than values provided. Will repeat values.")
   } else if (selection.length < mappedValues.length) {
     if (msg.type !== "set-x-y-vector") {
@@ -203,7 +212,7 @@ figma.ui.onmessage = (msg) => {
 
         if ('resize' in node && typeof value === 'number' && value > 0) {
           node.resize(width, height)
-          if (applyToHeight){
+          if (applyToHeight) {
             node.y = yBottom - height // Adjust y position to keep the bottom position unchanged
           }
         }
@@ -231,23 +240,23 @@ figma.ui.onmessage = (msg) => {
       // position each selected node based on the mapped values
       for (let i = 0; i < selection.length; i++) {
         const node = selection[i]
-        let xOriginal:number = node.x //store the original x position to set the x position of the vector points
-        let yOriginal:number = node.y //store the original y position to set the y position of the vector points
+        let xOriginal: number = node.x //store the original x position to set the x position of the vector points
+        let yOriginal: number = node.y //store the original y position to set the y position of the vector points
 
         if (node.type === "VECTOR") {
           let d: string = "" // Initialize the path data string;
           let xStep = node.width / (pointCount - 1)
-          let yStep = node.height / (pointCount - 1);
-          
+          let yStep = node.height / (pointCount - 1)
+
 
           for (let j = 0; j < pointCount; j++) {
             let x = j * xStep
             let y = j * yStep
-            
+
             let pointId = (i * pointCount + j)
             let value = mappedValues[pointId % mappedValues.length]
-            
-            x = applyToX ? (value-xOriginal) : x // If applyToX is true, use the mapped value for x
+
+            x = applyToX ? (value - xOriginal) : x // If applyToX is true, use the mapped value for x
             y = applyToY ? map(value, min, max, max, min) - yOriginal : y // If applyToY is true, use the mapped value for y (inverted for y-axis)
 
             if (j === 0) {
@@ -257,7 +266,7 @@ figma.ui.onmessage = (msg) => {
             }
           }
 
-          console.log(d);
+          console.log(d)
 
           node.vectorPaths = [
             {
@@ -265,7 +274,7 @@ figma.ui.onmessage = (msg) => {
               data: d // Set the path data to the constructed string
               // data: "M 50 0 L 50 0 L 100 100 L 150 200" // Set a default path for testing
             }
-          ];
+          ]
         }
       }
 
@@ -332,6 +341,38 @@ figma.ui.onmessage = (msg) => {
 
         figma.notify("Colors updated!")
       })
+
+      break
+
+    case "set-opacity":
+      for (let i = 0; i < selection.length; i++) {
+        const node = selection[i]
+        const value = Math.round(mappedValues[i % mappedValues.length]) / 100 // Convert to a percentage for opacity
+        if (
+          node.type === "BOOLEAN_OPERATION" ||
+          node.type === "COMPONENT" ||
+          node.type === "CONNECTOR" ||
+          node.type === "ELLIPSE" ||
+          node.type === "FRAME" ||
+          node.type === "GROUP" ||
+          node.type === "HIGHLIGHT" ||
+          node.type === "INSTANCE" ||
+          node.type === "LINE" ||
+          node.type === "POLYGON" ||
+          node.type === "RECTANGLE" ||
+          node.type === "SHAPE_WITH_TEXT" ||
+          node.type === "STAR" ||
+          node.type === "TEXT" ||
+          node.type === "TEXT_PATH" ||
+          node.type === "TRANSFORM_GROUP" ||
+          node.type === "VECTOR"
+        ) {
+          node.opacity = value // Set the opacity directly for rectangles
+        } else {
+          figma.notify(`Resize not supported on node type: ${node.type}`, { error: true })
+        }
+      }
+      figma.notify("Opacity updated!")
 
       break
     default:

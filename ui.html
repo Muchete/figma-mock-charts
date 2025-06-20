@@ -9,7 +9,12 @@
   <style>
     body {
       background-color: rgba(149, 185, 172, 0.1);
-      padding-bottom: 12px;
+      padding-bottom: .75rem;
+
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .type {
@@ -29,8 +34,7 @@
     }
 
     .wrapper {
-      padding: 4px 12px;
-      margin: auto;
+      padding: .25rem .75rem;
     }
 
     section {
@@ -62,11 +66,16 @@
     input:required:invalid {
       border: 1px red solid;
     }
+
+    .help{
+      display: flex;
+      flex-direction: column-reverse;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrapper">
+  <div class="main wrapper">
     <section class="section__intro">
       <h1 class="type--xlarge type--bold">Mock Chart Generator</h1>
       <div class="onboarding-tip">
@@ -205,7 +214,14 @@
     <button class="button button--primary" id="apply-button" onclick="applyAction();">Scale Selection randomly</button>
   </div>
 
-
+  <div class="wrapper help">
+    <ul class="disclosure">
+      <li class="disclosure__item">
+        <div class="disclosure__label disclosure--section">Help</div> <!-- This item is styled as a section -->
+        <div class="disclosure__content">I think I should write something here at some point.</div>
+      </li>
+    </ul>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/iife/figma-plugin-ds.js"></script>
   <script>

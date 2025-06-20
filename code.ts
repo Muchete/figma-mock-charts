@@ -251,9 +251,9 @@ figma.ui.onmessage = (msg) => {
             y = applyToY ? map(value, min, max, max, min) - yOriginal : y // If applyToY is true, use the mapped value for y (inverted for y-axis)
 
             if (j === 0) {
-              d += `M ${x} ${y} ` // Move to the first point
+              d = `M ${x} ${y}` // Move to the first point
             } else {
-              d += `L ${x} ${y} ` // Line to the next point
+              d += ` L ${x} ${y}` // Line to the next point
             }
           }
 
@@ -262,7 +262,7 @@ figma.ui.onmessage = (msg) => {
           node.vectorPaths = [
             {
               windingRule: "NONZERO",
-              data: d.trim() // Set the path data to the constructed string
+              data: d // Set the path data to the constructed string
               // data: "M 50 0 L 50 0 L 100 100 L 150 200" // Set a default path for testing
             }
           ];

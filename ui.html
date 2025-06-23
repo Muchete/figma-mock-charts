@@ -80,13 +80,13 @@
       <h1 class="type--xlarge type--bold">Mock Chart Generator</h1>
       <div class="onboarding-tip">
         <div class="icon icon--smiley"></div>
-        <div class="onboarding-tip__msg">Hello, this is an intro message.</div>
+        <div class="onboarding-tip__msg">Hello! To use the plugin select the desired elements in Figma, define the settings and options below and click the blue button to adapt the selected elements.</div>
       </div>
     </section>
 
     <section class="section__action">
       <h2 class="type type--bold">Select Action</h2>
-      <select id="action" class="select-menu" onchange="actionChange();">
+      <select id="action" class="select-menu" onchange="actionChange()">
         <option value="set-w-h">Set Width and/or Height</option>
         <option value="set-scale">Scale</option>
         <option value="set-x-y">Set X and/or Y Position</option>
@@ -100,15 +100,15 @@
       <h2 class="type type--bold">Select Input/Output</h2>
       <div class="radio">
         <input id="input-random" type="radio" class="radio__button" value="Value" name="radioGroup"
-          onchange="inputChange();" checked>
+          onchange="inputChange()" checked>
         <label for="input-random" class="radio__label">Random Data</label>
         <input id="input-csv" type="radio" class="radio__button" value="Value" name="radioGroup"
-          onchange="inputChange();">
+          onchange="inputChange()">
         <label for="input-csv" class="radio__label">CSV Input</label>
       </div>
       <div id="csv-input-fields" style="display: none;">
         <textarea class="textarea" required id="csv-input" rows="6" placeholder="Insert CSV data here"
-          oninput="checkButtonState();"></textarea>
+          oninput="checkButtonState()"></textarea>
         <h3 class="type--small">Input Range</h3>
         <div class="col-2">
           <div class="input">
@@ -127,11 +127,11 @@
         <div class="col-2">
           <div class="input">
             <label for="min" class="input__label">Min:</label>
-            <input type="number" class="input__field" value="0" id="min" placeholder="Minimum value" required>
+            <input type="number" class="input__field" step="1" value="0" min="0" id="min" placeholder="Minimum value" required>
           </div>
           <div class="input">
             <label for="max" class="input__label">Max:</label>
-            <input type="number" class="input__field" value="100" id="max" placeholder="Maximum value" required>
+            <input type="number" class="input__field" step="1" value="100" id="max" placeholder="Maximum value" required>
           </div>
         </div>
       </div>
@@ -140,18 +140,18 @@
         <div class="col-2">
           <div class="input">
             <label for="scale-min" class="input__label">Min:</label>
-            <input type="number" class="input__field" value="0.5" id="scale-min" placeholder="Minimum value" required>
+            <input type="number" class="input__field" value="0.5" min="0.01" step="any" id="scale-min" placeholder="Minimum value" required>
           </div>
           <div class="input">
             <label for="scale-max" class="input__label">Max:</label>
-            <input type="number" class="input__field" value="2" id="scale-max" placeholder="Maximum value" required>
+            <input type="number" class="input__field" value="2" step="any" id="scale-max" placeholder="Maximum value" required>
           </div>
         </div>
       </div>
       <div class="action-ui action-set-color" style="display: none;">
         <h3 class="type--small">Output Colors</h3>
         <textarea class="textarea" required id="color-input" rows="6"
-          placeholder="Enter one hex code or variable name (ie. sequential/Red-1) per line" oninput="checkButtonState();"></textarea>
+          placeholder="Enter one hex code or variable name (ie. sequential/Red-1) per line" oninput="checkButtonState()"></textarea>
       </div>
     </section>
 
@@ -211,7 +211,7 @@
       </div>
     </section>
 
-    <button class="button button--primary" id="apply-button" onclick="applyAction();">Scale Selection randomly</button>
+    <button class="button button--primary" id="apply-button" onclick="applyAction()">Scale Selection randomly</button>
   </div>
 
   <div class="wrapper help">

@@ -2,8 +2,6 @@ const debugMode: boolean = true // Set to true to enable debug mode
 
 async function getColorFromVariable(variableName: string): Promise<RGB | null> { // Fetches the color value from a Figma variable by its name
   // Step 1: Get all color variables
-
-
   const colorVariables = await figma.variables.getLocalVariablesAsync("COLOR")
   const variable = colorVariables.find(v => v.name === variableName)
 
@@ -43,11 +41,7 @@ async function mapColorValues(colorRange: string[]) { // Maps color names or hex
       mappedColorRange[i] = cName // If it's a hex color, use it directly
     } else {
       cName = await getColorFromVariable(cName) // Otherwise, get the color from the variable
-      if (cName) {
-        mappedColorRange[i] = cName as RGB
-      } else {
-        mappedColorRange[i] = "#FF00FF88" // Default color if variable not found
-      }
+      mappedColorRange[i] = cName ? cName as RGB : "#FF00FF88" // Default color if variable not found
     }
   }
 
@@ -266,13 +260,12 @@ figma.ui.onmessage = (msg) => {
             }
           }
 
-          console.log(d)
+          if (debugMode) console.log(d)
 
           node.vectorPaths = [
             {
               windingRule: "NONZERO",
               data: d // Set the path data to the constructed string
-              // data: "M 50 0 L 50 0 L 100 100 L 150 200" // Set a default path for testing
             }
           ]
         }

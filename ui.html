@@ -35,7 +35,7 @@
           "default": "align-m-c"
         }
       },
-      "set-x-y-vector":{
+      "set-x-y-vector": {
         "button": "Set Points of Vectors randomly",
         "buttonCSV": "Set Points of Vectors to CSV Values",
         "alignment": {
@@ -50,11 +50,11 @@
           },
         }
       },
-      "set-color":{
+      "set-color": {
         "button": "Color Selection randomly",
         "buttonCSV": "Color Selection to CSV Values",
       },
-      "set-opacity":{
+      "set-opacity": {
         "button": "Set Opacity of Selection randomly",
         "buttonCSV": "Set Opacity of Selection to CSV Values",
       }
@@ -104,6 +104,10 @@
       align-items: center;
     }
 
+    .col-2 .col-2{
+      gap: .25rem;
+    }
+
     .col-2 .input {
       display: flex;
       align-items: center;
@@ -118,7 +122,7 @@
       font-size: var(--font-size-xsmall);
     }
 
-    .radio__label:before{
+    .radio__label:before {
       margin-top: 0;
     }
 
@@ -137,7 +141,7 @@
       padding: 0;
     }
 
-    .section__alignment .radio__label:before{
+    .section__alignment .radio__label:before {
       margin-top: 2;
     }
 
@@ -240,88 +244,99 @@
       </div>
     </section>
 
-    <section class="section__applyto">
-      <h2 class="type--small">Apply to</h2>
-      <div class="action-ui action-set-w-h">
-        <div class="col-2">
-          <div class="checkbox">
-            <input id="width" type="checkbox" class="checkbox__box" onchange="alignmentChange()" checked>
-            <label for="width" class="checkbox__label">Width</label>
+    <section class="section__applyto__alignto col-2">
+      <div class="left">
+        <h2 class="type--small">Apply to</h2>
+        <div class="action-ui action-set-w-h">
+          <div class="col-2">
+            <div class="checkbox">
+              <input id="width" type="checkbox" class="checkbox__box" onchange="alignmentChange()" checked>
+              <label for="width" class="checkbox__label">Width</label>
+            </div>
+            <div class="checkbox">
+              <input id="height" type="checkbox" class="checkbox__box" onchange="alignmentChange()">
+              <label for="height" class="checkbox__label">Height</label>
+            </div>
           </div>
-          <div class="checkbox">
-            <input id="height" type="checkbox" class="checkbox__box" onchange="alignmentChange()">
-            <label for="height" class="checkbox__label">Height</label>
+        </div>
+        <div class="action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
+          <div class="col-2">
+            <div class="radio">
+              <input id="x" type="radio" class="radio__button" value="Value" onchange="alignmentChange()"
+                name="radioGroupXY">
+              <label for="x" class="radio__label">X-Axis</label>
+            </div>
+            <div class="radio">
+              <input id="y" type="radio" class="radio__button" value="Value" onchange="alignmentChange()"
+                name="radioGroupXY" checked>
+              <label for="y" class="radio__label">Y-Axis</label>
+            </div>
+          </div>
+        </div>
+        <div class="action-ui action-set-color" style="display: none;">
+          <div class="col-2">
+            <div class="checkbox">
+              <input id="fill" type="checkbox" class="checkbox__box" checked>
+              <label for="fill" class="checkbox__label">Fill</label>
+            </div>
+            <div class="checkbox">
+              <input id="stroke" type="checkbox" class="checkbox__box">
+              <label for="stroke" class="checkbox__label">Stroke</label>
+            </div>
+          </div>
+        </div>
+        <div class="action-ui action-set-scale" style="display: none;">
+          <div class="col-2">
+            <div class="checkbox">
+              <input id="scale" type="checkbox" class="checkbox__box" checked disabled>
+              <label for="scale" class="checkbox__label">Scale</label>
+            </div>
+          </div>
+        </div>
+        <div class="action-ui action-set-opacity" style="display: none;">
+          <div class="col-2">
+            <div class="checkbox">
+              <input id="opacity" type="checkbox" class="checkbox__box" checked disabled>
+              <label for="opacity" class="checkbox__label">Opacity</label>
+            </div>
           </div>
         </div>
       </div>
-      <div class="action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
-        <div class="col-2">
-          <div class="radio">
-            <input id="x" type="radio" class="radio__button" value="Value" onchange="alignmentChange()" name="radioGroupXY">
-            <label for="x" class="radio__label">X-Axis</label>
+      <div class="right">
+        <div class="section__alignment action-ui action-set-w-h action-set-scale action-set-x-y action-set-x-y-vector">
+          <h2 class="type--small">Align</h2>
+          <div id="alignment-radio-buttons">
+            <div class="radio">
+              <input id="align-t-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-t-l" class="radio__label"></label>
+              <input id="align-t-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-t-c" class="radio__label"></label>
+              <input id="align-t-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-t-r" class="radio__label"></label>
+            </div>
+            <div class="radio">
+              <input id="align-m-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" checked>
+              <label for="align-m-l" class="radio__label"></label>
+              <input id="align-m-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
+              <label for="align-m-c" class="radio__label"></label>
+              <input id="align-m-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
+              <label for="align-m-r" class="radio__label"></label>
+            </div>
+            <div class="radio">
+              <input id="align-b-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-b-l" class="radio__label"></label>
+              <input id="align-b-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-b-c" class="radio__label"></label>
+              <input id="align-b-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment"
+                disabled>
+              <label for="align-b-r" class="radio__label"></label>
+            </div>
           </div>
-          <div class="radio">
-            <input id="y" type="radio" class="radio__button" value="Value" onchange="alignmentChange()" name="radioGroupXY" checked>
-            <label for="y" class="radio__label">Y-Axis</label>
-          </div>
-        </div>
-      </div>
-      <div class="action-ui action-set-color" style="display: none;">
-        <div class="col-2">
-          <div class="checkbox">
-            <input id="fill" type="checkbox" class="checkbox__box" checked>
-            <label for="fill" class="checkbox__label">Fill</label>
-          </div>
-          <div class="checkbox">
-            <input id="stroke" type="checkbox" class="checkbox__box">
-            <label for="stroke" class="checkbox__label">Stroke</label>
-          </div>
-        </div>
-      </div>
-      <div class="action-ui action-set-scale" style="display: none;">
-        <div class="col-2">
-          <div class="checkbox">
-            <input id="scale" type="checkbox" class="checkbox__box" checked disabled>
-            <label for="scale" class="checkbox__label">Scale</label>
-          </div>
-        </div>
-      </div>
-      <div class="action-ui action-set-opacity" style="display: none;">
-        <div class="col-2">
-          <div class="checkbox">
-            <input id="opacity" type="checkbox" class="checkbox__box" checked disabled>
-            <label for="opacity" class="checkbox__label">Opacity</label>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section__alignment action-ui action-set-w-h action-set-scale action-set-x-y action-set-x-y-vector">
-      <h2 class="type--small">Align</h2>
-      <div id="alignment-radio-buttons">
-        <div class="radio">
-          <input id="align-t-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-t-l" class="radio__label"></label>
-          <input id="align-t-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-t-c" class="radio__label"></label>
-          <input id="align-t-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-t-r" class="radio__label"></label>
-        </div>
-        <div class="radio">
-          <input id="align-m-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" checked>
-          <label for="align-m-l" class="radio__label"></label>
-          <input id="align-m-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
-          <label for="align-m-c" class="radio__label"></label>
-          <input id="align-m-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
-          <label for="align-m-r" class="radio__label"></label>
-        </div>
-        <div class="radio">
-          <input id="align-b-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-b-l" class="radio__label"></label>
-          <input id="align-b-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-b-c" class="radio__label"></label>
-          <input id="align-b-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
-          <label for="align-b-r" class="radio__label"></label>
         </div>
       </div>
     </section>
@@ -361,7 +376,7 @@
         applyButton.innerHTML = settings[action].button
       }
     }
-    renameButtonText();
+    renameButtonText()
 
     // Show or hide the CSV input fields based on the selected input type
     const inputTypeChange = () => {

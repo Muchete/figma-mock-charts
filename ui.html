@@ -4,7 +4,63 @@
 <head>
   <!-- Figma Plugin UI -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/thomas-lowry/figma-plugin-ds/dist/figma-plugin-ds.css">
-  
+  <script>
+    const settings = {
+      "set-w-h": {
+        "button": "Scale Selection randomly",
+        "buttonCSV": "Scale Selection to CSV Values",
+        "alignment": {
+          "default": "align-m-l",
+          "w": {
+            "default": "align-m-l",
+            "allowed": ["align-m-l", "align-m-c", "align-m-r"]
+          },
+          "h": {
+            "default": "align-b-c",
+            "allowed": ["align-t-c", "align-m-c", "align-b-c"]
+          },
+        }
+      },
+      "set-scale": {
+        "button": "Scale Selection randomly",
+        "buttonCSV": "Scale Selection to CSV Values",
+        "alignment": {
+          "default": "align-m-c"
+        }
+      },
+      "set-x-y": {
+        "button": "Position Selection randomly",
+        "buttonCSV": "Position Selection to CSV Values",
+        "alignment": {
+          "default": "align-m-c"
+        }
+      },
+      "set-x-y-vector":{
+        "button": "Set Points of Vectors randomly",
+        "buttonCSV": "Set Points of Vectors to CSV Values",
+        "alignment": {
+          "default": "align-b-c",
+          "x": {
+            "default": "align-m-l",
+            "allowed": ["align-m-l", "align-m-r"]
+          },
+          "y": {
+            "default": "align-b-c",
+            "allowed": ["align-t-c", "align-b-c"]
+          },
+        }
+      },
+      "set-color":{
+        "button": "Color Selection randomly",
+        "buttonCSV": "Color Selection to CSV Values",
+      },
+      "set-opacity":{
+        "button": "Set Opacity of Selection randomly",
+        "buttonCSV": "Set Opacity of Selection to CSV Values",
+      }
+    }
+  </script>
+
   <!-- Custom overrides -->
   <style>
     body {
@@ -62,12 +118,35 @@
       font-size: var(--font-size-xsmall);
     }
 
+    .radio__label:before{
+      margin-top: 0;
+    }
+
     textarea:required:invalid,
     input:required:invalid {
       border: 1px red solid;
     }
 
-    .help{
+    .section__alignment .radio {
+      flex-wrap: wrap;
+      height: auto;
+    }
+
+    .section__alignment .radio__label {
+      margin: 0;
+      padding: 0;
+    }
+
+    .section__alignment .radio__label:before{
+      margin-top: 2;
+    }
+
+    .section__alignment .radio__label:nth-child(3n),
+    .section__alignment .radio__label:nth-child(3n + 1) {
+      margin-left: -9px;
+    }
+
+    .help {
       display: flex;
       flex-direction: column-reverse;
     }
@@ -80,7 +159,8 @@
       <h1 class="type--xlarge type--bold">Mock Data Chart Generator</h1>
       <div class="onboarding-tip">
         <div class="icon icon--smiley"></div>
-        <div class="onboarding-tip__msg">Hello! To use the plugin select the desired elements in Figma, define the settings and options below and click the blue button to adapt the selected elements.</div>
+        <div class="onboarding-tip__msg">Hello! To use the plugin select the desired elements in Figma, define the
+          settings and options below and click the blue button to adapt the selected elements.</div>
       </div>
     </section>
 
@@ -89,8 +169,8 @@
       <select id="action" class="select-menu" onchange="actionChange()">
         <option value="set-w-h">Set Width and/or Height</option>
         <option value="set-scale">Scale</option>
-        <option value="set-x-y">Set X and/or Y Position</option>
-        <option value="set-x-y-vector">Set X and/or Y Positions of a Vector</option>
+        <option value="set-x-y">Set X or Y Position</option>
+        <option value="set-x-y-vector">Set X or Y Positions of a Vector</option>
         <option value="set-color">Set Color</option>
         <option value="set-opacity">Set Opacity</option>
       </select>
@@ -99,16 +179,16 @@
     <section class="section__input">
       <h2 class="type type--bold">Select Input</h2>
       <div class="radio">
-        <input id="input-random" type="radio" class="radio__button" value="Value" name="radioGroup"
-          onchange="inputChange()" checked>
+        <input id="input-random" type="radio" class="radio__button" value="Value" name="radioGroupInput"
+          onchange="inputTypeChange()" checked>
         <label for="input-random" class="radio__label">Random Data</label>
-        <input id="input-csv" type="radio" class="radio__button" value="Value" name="radioGroup"
-          onchange="inputChange()">
+        <input id="input-csv" type="radio" class="radio__button" value="Value" name="radioGroupInput"
+          onchange="inputTypeChange()">
         <label for="input-csv" class="radio__label">CSV Input</label>
       </div>
       <div id="csv-input-fields" style="display: none;">
         <textarea class="textarea" required id="csv-input" rows="6" placeholder="Insert CSV data here"
-          oninput="checkButtonState()"></textarea>
+          oninput="setButtonState()"></textarea>
         <h3 class="type--small">Input Range</h3>
         <div class="col-2">
           <div class="input">
@@ -127,11 +207,13 @@
         <div class="col-2">
           <div class="input">
             <label for="min" class="input__label">Min:</label>
-            <input type="number" class="input__field" step="1" value="0" min="0" id="min" placeholder="Minimum value" required>
+            <input type="number" class="input__field" step="1" value="0" min="0" id="min" placeholder="Minimum value"
+              required>
           </div>
           <div class="input">
             <label for="max" class="input__label">Max:</label>
-            <input type="number" class="input__field" step="1" value="100" id="max" placeholder="Maximum value" required>
+            <input type="number" class="input__field" step="1" value="100" id="max" placeholder="Maximum value"
+              required>
           </div>
         </div>
       </div>
@@ -140,18 +222,21 @@
         <div class="col-2">
           <div class="input">
             <label for="scale-min" class="input__label">Min:</label>
-            <input type="number" class="input__field" value="0.5" min="0.01" step="any" id="scale-min" placeholder="Minimum value" required>
+            <input type="number" class="input__field" value="0.5" min="0.01" step="any" id="scale-min"
+              placeholder="Minimum value" required>
           </div>
           <div class="input">
             <label for="scale-max" class="input__label">Max:</label>
-            <input type="number" class="input__field" value="2" step="any" id="scale-max" placeholder="Maximum value" required>
+            <input type="number" class="input__field" value="2" step="any" id="scale-max" placeholder="Maximum value"
+              required>
           </div>
         </div>
       </div>
       <div class="action-ui action-set-color" style="display: none;">
         <h3 class="type--small">Output Colors</h3>
         <textarea class="textarea" required id="color-input" rows="6"
-          placeholder="Enter one hex code or variable name (ie. sequential/Red-1) per line" oninput="checkButtonState()"></textarea>
+          placeholder="Enter one hex code or variable name (ie. sequential/Red-1) per line"
+          oninput="setButtonState()"></textarea>
       </div>
     </section>
 
@@ -160,24 +245,24 @@
       <div class="action-ui action-set-w-h">
         <div class="col-2">
           <div class="checkbox">
-            <input id="width" type="checkbox" class="checkbox__box" checked>
+            <input id="width" type="checkbox" class="checkbox__box" onchange="alignmentChange()" checked>
             <label for="width" class="checkbox__label">Width</label>
           </div>
           <div class="checkbox">
-            <input id="height" type="checkbox" class="checkbox__box">
+            <input id="height" type="checkbox" class="checkbox__box" onchange="alignmentChange()">
             <label for="height" class="checkbox__label">Height</label>
           </div>
         </div>
       </div>
       <div class="action-ui action-set-x-y action-set-x-y-vector" style="display: none;">
         <div class="col-2">
-          <div class="checkbox">
-            <input id="x" type="checkbox" class="checkbox__box" checked>
-            <label for="x" class="checkbox__label">X-Axis</label>
+          <div class="radio">
+            <input id="x" type="radio" class="radio__button" value="Value" onchange="alignmentChange()" name="radioGroupXY">
+            <label for="x" class="radio__label">X-Axis</label>
           </div>
-          <div class="checkbox">
-            <input id="y" type="checkbox" class="checkbox__box">
-            <label for="y" class="checkbox__label">Y-Axis</label>
+          <div class="radio">
+            <input id="y" type="radio" class="radio__button" value="Value" onchange="alignmentChange()" name="radioGroupXY" checked>
+            <label for="y" class="radio__label">Y-Axis</label>
           </div>
         </div>
       </div>
@@ -211,7 +296,37 @@
       </div>
     </section>
 
-    <button class="button button--primary" id="apply-button" onclick="applyAction()">Scale Selection randomly</button>
+    <section class="section__alignment action-ui action-set-w-h action-set-scale action-set-x-y action-set-x-y-vector">
+      <h2 class="type--small">Align</h2>
+      <div id="alignment-radio-buttons">
+        <div class="radio">
+          <input id="align-t-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-t-l" class="radio__label"></label>
+          <input id="align-t-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-t-c" class="radio__label"></label>
+          <input id="align-t-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-t-r" class="radio__label"></label>
+        </div>
+        <div class="radio">
+          <input id="align-m-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" checked>
+          <label for="align-m-l" class="radio__label"></label>
+          <input id="align-m-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
+          <label for="align-m-c" class="radio__label"></label>
+          <input id="align-m-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment">
+          <label for="align-m-r" class="radio__label"></label>
+        </div>
+        <div class="radio">
+          <input id="align-b-l" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-b-l" class="radio__label"></label>
+          <input id="align-b-c" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-b-c" class="radio__label"></label>
+          <input id="align-b-r" type="radio" class="radio__button" value="Value" name="radioGroupAlignment" disabled>
+          <label for="align-b-r" class="radio__label"></label>
+        </div>
+      </div>
+    </section>
+
+    <button class="button button--primary" id="apply-button" onclick="applyAction()">Apply</button>
   </div>
 
   <div class="wrapper help">
@@ -236,68 +351,67 @@
     const csvInput = document.getElementById('csv-input')
     const colorInput = document.getElementById('color-input')
     const applyButton = document.getElementById('apply-button')
+    const alignmentRadioButtons = document.querySelectorAll('.section__alignment input')
 
     // Rename the button text based on the selected action
     const renameButtonText = () => {
       if (inputTypeCSV) { // CSV Texts
-        switch (action) {
-          case 'set-w-h':
-            applyButton.innerHTML = 'Scale Selection to CSV Values'
-            break
-          case 'set-scale':
-            applyButton.innerHTML = 'Scale Selection to CSV Values'
-            break
-          case 'set-x-y':
-            applyButton.innerHTML = 'Position Selection to CSV Values'
-            break
-          case 'set-x-y-vector':
-            applyButton.innerHTML = 'Set Points of Vectors to CSV Values'
-            break
-          case 'set-color':
-            applyButton.innerHTML = 'Color Selection to CSV Values'
-            break
-          case 'set-opacity':
-            applyButton.innerHTML = 'Set Opacity of Selection to CSV Values'
-            break
-        }
-      } else { // Random Texts
-        switch (action) {
-          case 'set-w-h':
-            applyButton.innerHTML = 'Scale Selection randomly'
-            break
-          case 'set-scale':
-            applyButton.innerHTML = 'Scale Selection randomly'
-            break
-          case 'set-x-y':
-            applyButton.innerHTML = 'Position Selection randomly'
-            break
-          case 'set-x-y-vector':
-            applyButton.innerHTML = 'Set Points of Vectors randomly'
-            break
-          case 'set-color':
-            applyButton.innerHTML = 'Color Selection randomly'
-            break
-          case 'set-opacity':
-            applyButton.innerHTML = 'Set Opacity of Selection randomly'
-            break
-        }
+        applyButton.innerHTML = settings[action].buttonCSV
+      } else {
+        applyButton.innerHTML = settings[action].button
       }
     }
+    renameButtonText();
 
     // Show or hide the CSV input fields based on the selected input type
-    const inputChange = () => {
+    const inputTypeChange = () => {
       const csvFields = document.getElementById('csv-input-fields')
       let csvInputCheckbox = document.getElementById('input-csv').checked
 
       csvFields.style.display = csvInputCheckbox ? 'block' : 'none'
       inputTypeCSV = csvInputCheckbox ? true : false
 
-      checkButtonState()
+      setButtonState()
       renameButtonText()
     }
 
+    // Set the default and allowed radio boxes of the alignment 
+    const alignmentChange = () => {
+      switch (action) {
+        case "set-w-h":
+          for (const radioButton of alignmentRadioButtons) radioButton.disabled = true //disable all radio buttons first
+          if (document.getElementById("height").checked && document.getElementById("width").checked) {
+            for (const radioButton of alignmentRadioButtons) radioButton.disabled = false
+          } else if (document.getElementById("height").checked) {
+            for (const radioOption of settings[action].alignment.h.allowed) document.getElementById(radioOption).disabled = false
+            document.getElementById(settings[action].alignment.h.default).checked = true
+          } else if (document.getElementById("width").checked) {
+            for (const radioOption of settings[action].alignment.w.allowed) document.getElementById(radioOption).disabled = false
+            document.getElementById(settings[action].alignment.w.default).checked = true
+          }
+          break
+        case "set-scale":
+        case "set-x-y":
+          alignmentRadioButtons.forEach(radioButton => { radioButton.disabled = false })
+          document.getElementById(settings[action].alignment.default).checked = true
+          break
+        case "set-x-y-vector":
+          for (const radioButton of alignmentRadioButtons) radioButton.disabled = true //disable all radio buttons first
+          if (document.getElementById("y").checked && document.getElementById("x").checked) {
+            for (const radioButton of alignmentRadioButtons) radioButton.disabled = false
+          } else if (document.getElementById("y").checked) {
+            for (const radioOption of settings[action].alignment.y.allowed) document.getElementById(radioOption).disabled = false
+            document.getElementById(settings[action].alignment.y.default).checked = true
+          } else if (document.getElementById("x").checked) {
+            for (const radioOption of settings[action].alignment.x.allowed) document.getElementById(radioOption).disabled = false
+            document.getElementById(settings[action].alignment.x.default).checked = true
+          }
+          break
+      }
+    }
+
     // If the CSV input is empty, disable the apply button
-    const checkButtonState = () => {
+    const setButtonState = () => {
       if (csvInput.value.length === 0 && inputTypeCSV) {
         applyButton.disabled = true
       } else if (action === 'set-color' && colorInput.value.length === 0) {
@@ -319,8 +433,9 @@
         element.style.display = "block"
       })
 
-      checkButtonState()
+      setButtonState()
       renameButtonText()
+      alignmentChange()
     }
 
     // Do the important stuff when the button is clicked
@@ -343,7 +458,8 @@
         y: document.getElementById('y').checked,
         fill: document.getElementById('fill').checked,
         stroke: document.getElementById('stroke').checked,
-        opacity: document.getElementById('opacity').checked
+        opacity: document.getElementById('opacity').checked,
+        alignment: document.querySelector('input[name="radioGroupAlignment"]:checked').id
       }
 
       if (inputTypeCSV && raw.length !== 0) { // CSV Input formatting

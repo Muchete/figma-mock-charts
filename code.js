@@ -76,6 +76,44 @@ function map(value, currentLow, currentHigh, targetLow, targetHigh) {
     }
     return targetLow + ((targetHigh - targetLow) * (value - currentLow)) / (currentHigh - currentLow);
 }
+function offsetPosition(actionType, applyTo, alignment, nodeBefore, nodeNow) {
+    const xAlignment = alignment.charAt(8);
+    const yAlignment = alignment.charAt(6);
+    switch (xAlignment) {
+        case ("l"): //align left
+            //don't do anything, since this is the normal behavior of x axis
+            break;
+        case ("c"): //align center
+            nodeNow.x -= (nodeNow.width - nodeBefore.width) / 2;
+            if (actionType === "set-x-y" && applyTo.x) {
+                nodeNow.x -= nodeNow.width / 2;
+            }
+            break;
+        case ("r"): //align right
+            nodeNow.x -= (nodeNow.width - nodeBefore.width);
+            if (actionType === "set-x-y" && applyTo.x) {
+                nodeNow.x -= nodeNow.width;
+            }
+            break;
+    }
+    switch (yAlignment) {
+        case ("t"): //align top
+            //don't do anything, since this is the normal behavior of y axis
+            break;
+        case ("m"): //align middle
+            nodeNow.y -= (nodeNow.height - nodeBefore.height) / 2;
+            if (actionType === "set-x-y" && applyTo.y) {
+                nodeNow.y -= nodeNow.height / 2;
+            }
+            break;
+        case ("b"): //align bottom
+            nodeNow.y -= (nodeNow.height - nodeBefore.height);
+            if (actionType === "set-x-y" && applyTo.y) {
+                nodeNow.y -= nodeNow.height;
+            }
+            break;
+    }
+}
 function countPathPoints(d) {
     const commandRegex = /([MLZ])([^MLZ]*)/gi;
     let match;
@@ -112,7 +150,7 @@ figma.ui.onmessage = (msg) => {
     const applyToY = msg.applyTo.y;
     const applyToFill = msg.applyTo.fill;
     const applyToStroke = msg.applyTo.stroke;
-    const applyToOpacity = msg.applyTo.opacity;
+    const alignmentString = msg.applyTo.alignment;
     let mappedValues = [];
     let pointCount = 0;
     if (selection.length === 0) {
@@ -190,16 +228,14 @@ figma.ui.onmessage = (msg) => {
             // Resize each selected node based on the mapped values
             for (let i = 0; i < selection.length; i++) {
                 const node = selection[i];
+                const nodeBefore = { width: node.width, height: node.height };
                 let value = Math.round(mappedValues[i % mappedValues.length]);
-                let yBottom = node.y + node.height; // Store the original bottom position to keep it unchanged
                 value = value === 0 ? 0.01 : value; //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
-                const width = applyToWidth ? value : node.width;
-                const height = applyToHeight ? value : node.height;
                 if ('resize' in node && typeof value === 'number' && value > 0) {
+                    const width = applyToWidth ? value : node.width;
+                    const height = applyToHeight ? value : node.height;
                     node.resize(width, height);
-                    if (applyToHeight) {
-                        node.y = yBottom - height; // Adjust y position to keep the bottom position unchanged
-                    }
+                    offsetPosition(msg.type, msg.applyTo, alignmentString, nodeBefore, node);
                 }
             }
             figma.notify("w/h updated!");
@@ -208,11 +244,14 @@ figma.ui.onmessage = (msg) => {
             // position each selected node based on the mapped values
             for (let i = 0; i < selection.length; i++) {
                 const node = selection[i];
+                const nodeBefore = { width: node.width, height: node.height };
+                // TODO
                 let value = Math.round(mappedValues[i % mappedValues.length]);
                 const x = applyToX ? value : node.x;
                 const y = applyToY ? map(value, min, max, max, min) : node.y; //invert the value for y-axis
                 node.x = x;
                 node.y = y;
+                offsetPosition(msg.type, msg.applyTo, alignmentString, nodeBefore, node);
             }
             figma.notify("x/y updated!");
             break;
@@ -231,8 +270,33 @@ figma.ui.onmessage = (msg) => {
                         let y = j * yStep;
                         let pointId = (i * pointCount + j);
                         let value = mappedValues[pointId % mappedValues.length];
-                        x = applyToX ? (value - xOriginal) : x; // If applyToX is true, use the mapped value for x
-                        y = applyToY ? map(value, min, max, max, min) - yOriginal : y; // If applyToY is true, use the mapped value for y (inverted for y-axis)
+                        const xAlignment = alignmentString.charAt(8);
+                        const yAlignment = alignmentString.charAt(6);
+                        if (applyToX) {
+                            switch (xAlignment) {
+                                case ("l"): //align left
+                                case ("c"): //align center
+                                default:
+                                    x = value - xOriginal; // If applyToX is true, use the mapped value for x
+                                    break;
+                                case ("r"): //align right
+                                    x = map(value, min, max, max, min) - xOriginal; // If applyToX is true, use the mapped value for x
+                                    break;
+                            }
+                        }
+                        if (applyToY) {
+                            switch (yAlignment) {
+                                case ("t"): //align top
+                                    y = value - yOriginal; // If applyToY is true, use the mapped value for y (inverted for y-axis)
+                                    //don't do anything, since this is the normal behavior of y axis
+                                    break;
+                                case ("m"): //align middle
+                                case ("b"): //align bottom
+                                default:
+                                    y = map(value, min, max, max, min) - yOriginal; // If applyToY is true, use the mapped value for y (inverted for y-axis)
+                                    break;
+                            }
+                        }
                         if (j === 0) {
                             d = `M ${x} ${y}`; // Move to the first point
                         }
@@ -255,10 +319,9 @@ figma.ui.onmessage = (msg) => {
         case "set-scale":
             for (let i = 0; i < selection.length; i++) {
                 const node = selection[i];
+                const nodeBefore = { width: node.width, height: node.height };
                 let scaleFactor = mappedValues[i % mappedValues.length];
                 scaleFactor = scaleFactor <= 0 ? 0.01 : scaleFactor; //set a minimum width to avoid zero-width elements as this can't be handled by Figma node.resize      
-                let xOffset = (node.width * scaleFactor - node.width) / 2;
-                let yOffset = (node.height * scaleFactor - node.height) / 2;
                 if (node.type === "RECTANGLE" ||
                     node.type === "ELLIPSE" ||
                     node.type === "FRAME" ||
@@ -269,8 +332,7 @@ figma.ui.onmessage = (msg) => {
                     node.type === "GROUP" ||
                     node.type === "STAR") {
                     node.rescale(scaleFactor);
-                    node.x -= xOffset; // Adjust x position to keep the center
-                    node.y -= yOffset; // Adjust y position to keep the center
+                    offsetPosition(msg.type, msg.applyTo, alignmentString, nodeBefore, node);
                 }
                 else {
                     figma.notify(`Resize not supported on node type: ${node.type}`);
